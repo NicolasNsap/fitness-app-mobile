@@ -67,6 +67,10 @@ export default function LoginScreen(){
                 </Text>
             </TouchableOpacity>
 
+            <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
+                <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
+            </TouchableOpacity>
+
         </View>
     );
 
@@ -105,5 +109,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-
+    link: {
+        color: '#007AFF',
+        textAlign: 'center',
+        fontSize: 14,
+        marginTop: 15,
+    },
 })

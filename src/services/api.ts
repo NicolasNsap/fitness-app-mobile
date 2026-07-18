@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const API_URL = 'http://56.126.6.86:8080/api';
 
 //se crea un objeto con funciones relacionadas con autenticacion, export permite usarlo desde otros archivos
-export const authService = {
+export const authService = {//authservice es una objeto que agrupa funciones relacionadas con autenticacion no es una funcion, es un objeto con metodos
     //funcion que recibe usuario y contrasenia y async porque hace una peticion que tarda
     login: async (username: string, password: string) => {
         //fetch hace la peticion HTTP await espera la respuesta antes de continuar
@@ -25,6 +25,21 @@ export const authService = {
         //convierte la respuesta en un objeto JavasCript, retorna el token
         return response.json();
 
+    },
+    //funcion para registro
+    register: async (username: string, email: string, password: string) => {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password}),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al registrar');
+      }
+      return response.json();
     }
 
     

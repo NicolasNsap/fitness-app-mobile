@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //direccion del backend en aws, una sola varible para no repetirla
-const API_URL = 'http://56.126.6.86:8080/api';
+const API_URL = 'https://fitness-app-backend-production-f14c.up.railway.app/api';
 
 //se crea un objeto con funciones relacionadas con autenticacion, export permite usarlo desde otros archivos
 export const authService = {//authservice es una objeto que agrupa funciones relacionadas con autenticacion no es una funcion, es un objeto con metodos

@@ -73,10 +73,13 @@ export default function HomeScreen() {
                     data={workouts}
                     keyExtractor={(item: any) => item.id}
                     renderItem={({ item }) => (
-                        <View style={styles.card}>
+                        <TouchableOpacity 
+                            style={styles.card}
+                            onPress={() => (navigation as any).navigate('WorkoutDetail', { workoutId: item.id })}
+                        >
                             <Text style={styles.cardTitle}>{item.name}</Text>
                             <Text>{item.date}</Text>
-                        </View>
+                        </TouchableOpacity>
                     )}
                 />
             )}

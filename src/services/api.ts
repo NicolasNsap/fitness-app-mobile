@@ -78,5 +78,19 @@ export const workoutService = {
       throw new Error('Error al crear workout')
     }
     return response.json();
+  },
+
+  getWorkoutById: async (id: string) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok){
+      throw new Error('Error al obtener workout')
+    }
+    return response.json();
   }
 };

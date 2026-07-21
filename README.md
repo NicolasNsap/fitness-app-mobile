@@ -35,18 +35,19 @@ Conecta con el backend en:
 
 ## Estructura del proyecto
 
+```
 fitness-app-mobile/
-├── App.tsx # Navegación principal
+├── App.tsx                    # Navegación principal
 ├── src/
-│ ├── screens/
-│ │ ├── LoginScreen.tsx
-│ │ ├── RegisterScreen.tsx
-│ │ ├── HomeScreen.tsx
-│ │ ├── CreateWorkoutScreen.tsx
-│ │ └── WorkoutDetailScreen.tsx
-│ └── services/
-│ └── api.ts # Conexión con backend
-
+│   ├── screens/
+│   │   ├── LoginScreen.tsx
+│   │   ├── RegisterScreen.tsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── CreateWorkoutScreen.tsx
+│   │   └── WorkoutDetailScreen.tsx
+│   └── services/
+│       └── api.ts             # Conexión con backend
+```
 
 ---
 

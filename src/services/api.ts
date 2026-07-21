@@ -46,6 +46,7 @@ export const authService = {//authservice es una objeto que agrupa funciones rel
 }
 
 export const workoutService = {
+  //metodo para mostrar los entrenamientos
   getWorkouts: async () => {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/workouts`, {
@@ -60,4 +61,22 @@ export const workoutService = {
 
     return response.json();
   },
+
+  //metodo para crear un entrenamiento
+  createWorkout: async (name: string, date: string, notes?: string) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name, date, notes}),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al crear workout')
+    }
+    return response.json();
+  }
 };

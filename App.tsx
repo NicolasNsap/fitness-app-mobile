@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./src/screens/LoginScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
+import CreateWorkoutScreen from "./src/screens/CreateWorkoutScreen";
 
 const Stack = createNativeStackNavigator();
 //Stack.Navigator define un "stack" de pantallas (como una pila de cartas)
@@ -28,7 +29,12 @@ export default function App(){
           name="Home"
           component={HomeScreen}
           options={{ title: 'Inicio'}}
-        />  
+        />
+        <Stack.Screen
+          name="CreateWorkout"
+          component={CreateWorkoutScreen}
+          options={{ title: 'Nuevo Entrenaiento'}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   )

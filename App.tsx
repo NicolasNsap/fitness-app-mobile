@@ -6,6 +6,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
 import CreateWorkoutScreen from "./src/screens/CreateWorkoutScreen";
 import WorkoutDetailScreen from "./src/screens/WorkoutDetailScreen";
+import AddExerciseScreen from "./src/screens/AddExerciseScreen";
+import AddSetsScreen from "./src/screens/AddSetsScreen";
 
 const Stack = createNativeStackNavigator();
 //Stack.Navigator define un "stack" de pantallas (como una pila de cartas)
@@ -40,6 +42,16 @@ export default function App(){
           name="WorkoutDetail"
           component={WorkoutDetailScreen}
           options={{title: 'Detalle'}}
+        />
+        <Stack.Screen
+          name="AddExercise"
+          component={AddExerciseScreen}
+          options={{ title: 'Agregar Ejercicio'}}
+        />
+        <Stack.Screen
+          name="AddSets"
+          component={AddSetsScreen}
+          options={{title: 'Agregar Sets'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

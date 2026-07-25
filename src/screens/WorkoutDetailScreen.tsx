@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from "react-native";
 import { useState, useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 import { workoutService } from "../services/api";
 
 //{ route } recibe los parametros de navegacion
@@ -8,6 +9,7 @@ export default function WorkoutDetailScreen({ route }: any) {
     const { workoutId } = route.params;//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
+    const navigation = useNavigation();
 
     //carga de datos
     useEffect(() => {
@@ -57,7 +59,15 @@ export default function WorkoutDetailScreen({ route }: any) {
                 <Text>Sets: {workout.totalSets}</Text>
             </View>
 
-            <Text style={styles.sectionTitle}>Ejercicios</Text>
+            <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Ejercicios</Text>
+                <TouchableOpacity 
+                    style={styles.addButton}
+                    onPress={() => (navigation as any).navigate('AddExercise', { workoutId: workout.id })}
+                >
+                    <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity>
+            </View>
 
             {workout.exercises?.length === 0 ? (
                 <Text style={styles.empty}>No hay ejercicios aún</Text>
@@ -128,5 +138,24 @@ const styles = StyleSheet.create({
     exerciseName: {
         fontSize: 16,
         fontWeight: '600',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    addButton: {
+        backgroundColor: '#007AFF',
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 'bold',
     },
 });

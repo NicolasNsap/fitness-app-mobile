@@ -54,7 +54,7 @@ export default function HomeScreen() {
         </View>
         );
     }
-
+    //mostrar los elementos que de la pantalla
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Mis Entrenamientos</Text>
@@ -92,6 +92,7 @@ export default function HomeScreen() {
     
 }
 
+//estilo que se le dara a los elementos de la pantalla
 const styles = StyleSheet.create({
     container: {
         flex: 1,

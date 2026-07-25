@@ -3,8 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 //direccion del backend en aws, una sola varible para no repetirla
 const API_URL = 'https://fitness-app-backend-production-f14c.up.railway.app/api';
 
-//se crea un objeto con funciones relacionadas con autenticacion, export permite usarlo desde otros archivos
-export const authService = {//authservice es una objeto que agrupa funciones relacionadas con autenticacion no es una funcion, es un objeto con metodos
+//objeto que contendra funciones relacionadas con autenthicacion
+export const authService = {
     //funcion que recibe usuario y contrasenia y async porque hace una peticion que tarda
     login: async (username: string, password: string) => {
         //fetch hace la peticion HTTP await espera la respuesta antes de continuar
@@ -26,6 +26,7 @@ export const authService = {//authservice es una objeto que agrupa funciones rel
         return response.json();
 
     },
+    
     //funcion para registro
     register: async (username: string, email: string, password: string) => {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -44,7 +45,7 @@ export const authService = {//authservice es una objeto que agrupa funciones rel
 
     
 }
-
+//objeto con funciones relacionadas con workouts
 export const workoutService = {
   //metodo para mostrar los entrenamientos
   getWorkouts: async () => {
@@ -92,5 +93,48 @@ export const workoutService = {
       throw new Error('Error al obtener workout')
     }
     return response.json();
+  },
+
+  addExerciseToWorkout: async (workoutId: string, exerciseId: string, sets: any[]) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts/${workoutId}/exercises`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        exerciseId,
+        orderIndex: 1,
+        notes: '',
+        sets,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al agregar ejercicio');
+
+    }
+    return response.json();
   }
+
 };
+
+//objeto con funciones relacionadas con exercises
+export const exerciseService = {
+  //metodo para obtener los ejercicios
+  getExercises: async () => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/exercises`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error en obtener el ejercicio');
+    }
+
+    return response.json();
+  }
+}

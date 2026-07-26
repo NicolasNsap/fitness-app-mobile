@@ -17,7 +17,7 @@ export default function WorkoutDetailScreen({ route }: any) {
         loadWorkout();
     }, []);
 
-    //funcion loadWorkout
+    //funcion loadWorkout(cargar entrenamiento)
     const loadWorkout = async () => {
         try {
             const data = await workoutService.getWorkoutById(workoutId);
@@ -76,9 +76,14 @@ export default function WorkoutDetailScreen({ route }: any) {
                     data={workout.exercises}
                     keyExtractor={(item: any) => item.id}
                     renderItem={({ item }) => (
+                        //tarjeta de ejercicio muestra nombre y cantidad de sets
                         <View style={styles.exerciseCard}>
                             <Text style={styles.exerciseName}>{item.exerciseName}</Text>
-                            <Text>{item.sets?.length || 0} sets</Text>
+                            {item.sets?.map((set: any, index: number) => (
+                                <Text key={index} style={styles.setText}>
+                                    Set {set.setNumber}: {set.weight}kg x {set.reps}
+                                </Text>
+                            ))}
                         </View>
                     )}
                 />
@@ -132,8 +137,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
         borderRadius: 8,
         marginBottom: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
     },
     exerciseName: {
         fontSize: 16,
@@ -157,5 +161,10 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 20,
         fontWeight: 'bold',
+    },
+    setText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
     },
 });

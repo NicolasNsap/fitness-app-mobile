@@ -116,8 +116,23 @@ export const workoutService = {
 
     }
     return response.json();
-  }
+  },
 
+  //remover ejercicio del entrenamiento
+  removeExerciseFromWorkout: async (workoutId: string, exerciseId:string) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts/${workoutId}/exercises/${exerciseId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al aliminar el ejercicio');
+    }
+  }
+    
 };
 
 //objeto con funciones relacionadas con exercises

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from "react-native";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert} from "react-native";
 import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { workoutService } from "../services/api";
@@ -27,6 +27,33 @@ export default function WorkoutDetailScreen({ route }: any) {
         }finally{
             setLoading(false);
         }
+    };
+
+    //eliminar ejercicio del entrenaiento
+    const handleDeleteExercise = (exerciseId: string, exerciseName: string) => {
+        console.log('workout.id:', workout.id);
+        console.log('exerciseId:', exerciseId);
+        //alerta de eliminacion del ejercicio
+        Alert.alert(
+            'Eliminar ejercicio',
+            `¿Eliminar ${exerciseName} del workout?`,
+            //array de botones
+            [
+                { text: 'Cancelar', style: 'cancel'},
+                { text: 'Eliminar', style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            console.log('Enviando a API:', workout.id, exerciseId);
+                            await workoutService.removeExerciseFromWorkout(workout.id, exerciseId);
+                            loadWorkout();
+                        } catch (error) {
+                            console.log('Error:', error);
+                            Alert.alert('Error', 'No se puede eliminar el ejercicio');
+                        }
+                    }
+                },
+            ]
+        )
     };
 
     if (loading) {
@@ -73,12 +100,22 @@ export default function WorkoutDetailScreen({ route }: any) {
                 <Text style={styles.empty}>No hay ejercicios aún</Text>
             ) : (
                 <FlatList
+                    //los datos (array)
                     data={workout.exercises}
+                    //ID unico de cada uno de los datos
                     keyExtractor={(item: any) => item.id}
+                    //renderItem indica como dibujar cada elemento de la lista
                     renderItem={({ item }) => (
-                        //tarjeta de ejercicio muestra nombre y cantidad de sets
                         <View style={styles.exerciseCard}>
-                            <Text style={styles.exerciseName}>{item.exerciseName}</Text>
+                            <View style={styles.exerciseHeader}>
+                                <Text style={styles.exerciseName}>{item.exerciseName}</Text>
+                                <TouchableOpacity 
+                                    onPress={() => handleDeleteExercise(item.exerciseId, item.exerciseName)}
+                                >
+                                    <Text style={styles.deleteButton}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+        
                             {item.sets?.map((set: any, index: number) => (
                                 <Text key={index} style={styles.setText}>
                                     Set {set.setNumber}: {set.weight}kg x {set.reps}
@@ -166,5 +203,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 5,
+    },
+    exerciseHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    deleteButton: {
+        color: '#FF3B30',
+        fontSize: 18,
+        fontWeight: 'bold',
+        padding: 5,
     },
 });

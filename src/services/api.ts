@@ -131,6 +131,20 @@ export const workoutService = {
     if (!response.ok) {
       throw new Error('Error al aliminar el ejercicio');
     }
+  },
+
+  //metodo para eliminar un workout
+  deleteWorkout: async (workoutId: string) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts/${workoutId}`,{
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error al elimiar el entrenamiento');
+    }
   }
     
 };

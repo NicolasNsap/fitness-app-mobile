@@ -3,12 +3,12 @@
 //keysExtractor ID unico para cada item
 //renderItem como se ve cada workout
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { workoutService } from '../services/api';
 //AsyncStorage -> acceder al almacenamiento donde se guardo el token
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //useNavigation -> poder nevegar a otra pantalla
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
     const [workouts, setWorkouts] = useState([]);
@@ -18,10 +18,13 @@ export default function HomeScreen() {
     const navigation = useNavigation();
 
 
-    //se ejecuta una vez cuando la pantalla carga
-    useEffect(() => {
-        loadWorkouts();
-    }, []);
+    //corre cada vez que la pantalla aparece en pantalla
+    useFocusEffect(
+        useCallback(() => {
+            loadWorkouts();
+        }, [workouts])
+            //cuando la pantalla carga ejecuta loadWorkout() una vez
+    );
 
     //funcion de cargar los entrenamientos
     const loadWorkouts = async () => {

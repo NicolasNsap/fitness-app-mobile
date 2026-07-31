@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert} from "react-native";
-import { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { workoutService } from "../services/api";
 
 //{ route } recibe los parametros de navegacion
@@ -11,11 +11,13 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [loading, setLoading] = useState(true);//empieza cargando
     const navigation = useNavigation();
 
-    //carga de datos
-    useEffect(() => {
+    //corre cada vez que la pantalla aparece en pantalla
+    useFocusEffect(
+        useCallback(() => {
+            loadWorkout();
+        }, [workoutId])
         //cuando la pantalla carga ejecuta loadWorkout() una vez
-        loadWorkout();
-    }, []);
+    );
 
     //funcion loadWorkout(cargar entrenamiento)
     const loadWorkout = async () => {
@@ -54,6 +56,31 @@ export default function WorkoutDetailScreen({ route }: any) {
                 },
             ]
         )
+    };
+
+    //eliminar un entrenamiento
+    const handleDeleteWorkout = (workoutId: string, workoutName: string) => {
+        //mensaje de alerta
+        Alert.alert(
+            'Eliminar entrenamiento',
+            `¿Eliminar ${workoutName}?`,
+            //array de botones
+            [
+                {text: 'Cancelar', style: 'cancel'},
+                {text: 'Eliminar', style: 'destructive', 
+                    onPress: async () => {
+                        try {
+                            await workoutService.deleteWorkout(workoutId);
+                            (navigation as any).navigate('Home');
+                        } catch (error) {
+                            Alert.alert('Error', 'No se puede eliminar el entrenamiento');
+                            
+                        }
+                    }
+                },
+            ]
+        )
+        
     };
 
     if (loading) {
@@ -125,6 +152,9 @@ export default function WorkoutDetailScreen({ route }: any) {
                     )}
                 />
             )}
+            <TouchableOpacity style={styles.deleteWorkoutButton} onPress={() => handleDeleteWorkout(workoutId, workout.name)}>
+                <Text style={styles.buttonText}>Eliminar entrenamiento</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -216,4 +246,17 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         padding: 5,
     },
+    deleteWorkoutButton: {
+        backgroundColor: '#FF3B30',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    }
+
 });

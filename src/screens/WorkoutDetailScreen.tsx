@@ -137,7 +137,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                             <View style={styles.exerciseHeader}>
                                 <Text style={styles.exerciseName}>{item.exerciseName}</Text>
                                 <TouchableOpacity 
-                                    onPress={() => handleDeleteExercise(item.exerciseId, item.exerciseName)}
+                                    onPress={() => handleDeleteExercise(item.id, item.exerciseName)}
                                 >
                                     <Text style={styles.deleteButton}>✕</Text>
                                 </TouchableOpacity>

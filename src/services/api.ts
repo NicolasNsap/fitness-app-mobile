@@ -167,3 +167,25 @@ export const exerciseService = {
     return response.json();
   }
 }
+
+//objeto con funciones realcionadas con sets(series)
+export const setService = {
+  //metodo para actulizar set
+  updateSet: async (setId: string, weight: number, reps: number) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/sets/${setId}`,{
+      method:'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+
+      },
+      body: JSON.stringify({weight, reps}),
+    });
+    if (!response.ok) {
+      throw new Error('Error al editar el set')
+    }
+    return response.json();
+
+  }
+}

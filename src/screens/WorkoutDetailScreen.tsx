@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert} from "react-native";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput} from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { workoutService } from "../services/api";
+import { setService, workoutService } from "../services/api";
+
 
 //{ route } recibe los parametros de navegacion
 export default function WorkoutDetailScreen({ route }: any) {
@@ -9,6 +10,12 @@ export default function WorkoutDetailScreen({ route }: any) {
     const { workoutId } = route.params;//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
+    //estados para la ventala modal
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedSet, setSelectedSet] = useState<any>(null);
+    const [editWeight, setEditWeight] = useState('');
+    const [editReps, setEditReps] = useState('');
+
     const navigation = useNavigation();
 
     //corre cada vez que la pantalla aparece en pantalla
@@ -82,6 +89,27 @@ export default function WorkoutDetailScreen({ route }: any) {
         )
         
     };
+    //abrir ventana modal
+    const handleEditSet = (set: any) => {
+        //guardar el set seleccionado
+        setSelectedSet(set);
+        //llevar el input de peso
+        setEditWeight(set.weight.toString());
+        //llenar el input de reps
+        setEditReps(set.reps.toString());
+        //abrir el modal
+        setModalVisible(true);
+    };
+    //guardar set actulizado
+    const handleSaveSet = async () => {
+        try {
+            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps));
+            loadWorkout();
+            setModalVisible(false);
+        } catch (error) {
+            Alert.alert('No se pudo actulizar el set')
+        }
+    }
 
     if (loading) {
         return (
@@ -144,9 +172,11 @@ export default function WorkoutDetailScreen({ route }: any) {
                             </View>
         
                             {item.sets?.map((set: any, index: number) => (
-                                <Text key={index} style={styles.setText}>
-                                    Set {set.setNumber}: {set.weight}kg x {set.reps}
-                                </Text>
+                                <TouchableOpacity key={index} style={styles.updateSet} onPress={() => handleEditSet(set)}>
+                                    <Text  style={styles.setText}>
+                                        Set {set.setNumber}: {set.weight}kg x {set.reps}
+                                    </Text>
+                                </TouchableOpacity>
                             ))}
                         </View>
                     )}
@@ -155,6 +185,37 @@ export default function WorkoutDetailScreen({ route }: any) {
             <TouchableOpacity style={styles.deleteWorkoutButton} onPress={() => handleDeleteWorkout(workoutId, workout.name)}>
                 <Text style={styles.buttonText}>Eliminar entrenamiento</Text>
             </TouchableOpacity>
+            
+            <Modal visible={modalVisible} transparent={true} animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Editar Set {selectedSet?.setNumber}</Text>
+
+                        <TextInput
+                            style={styles.modalInput}
+                            value={editWeight}
+                            onChangeText={setEditWeight}
+                            placeholder="Peso (kg)"
+                            keyboardType="numeric"
+                        />
+                        <TextInput
+                            style={styles.modalInput}
+                            value={editReps}
+                            onChangeText={setEditReps}
+                            placeholder="reps"
+                            keyboardType="numeric"
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Text>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleSaveSet()}>
+                                <Text>Guardar</Text>
+                            </TouchableOpacity>                            
+                        </View>               
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 
@@ -257,6 +318,63 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
-    }
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    modalInput: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+        fontSize: 16,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 15,
+    },
+    cancelButton: {
+        padding: 10,
+        flex: 1,
+        marginRight: 10,
+        alignItems: 'center',
+        borderRadius: 8,
+        backgroundColor: '#ccc',
+    },
+    cancelButtonText: {
+        color: '#333',
+        fontWeight: 'bold',
+    },
+    saveButton: {
+        padding: 10,
+        flex: 1,
+        alignItems: 'center',
+        borderRadius: 8,
+        backgroundColor: '#007AFF',
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    updateSet: {
+        padding: 5,
+    },
 
 });

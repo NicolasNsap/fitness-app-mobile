@@ -10,11 +10,16 @@ export default function WorkoutDetailScreen({ route }: any) {
     const { workoutId } = route.params;//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
-    //estados para la ventala modal
+    //estados para la ventala modal de editar sets
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedSet, setSelectedSet] = useState<any>(null);
     const [editWeight, setEditWeight] = useState('');
     const [editReps, setEditReps] = useState('');
+    //estados para el modal de editar workouts
+    const [editWorkoutModalVisible, setEditWorkoutModalVisible] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editNotes, setEditNotes] = useState('');
+    const [editDuration, setEditDuration] = useState('');
 
     const navigation = useNavigation();
 
@@ -89,7 +94,7 @@ export default function WorkoutDetailScreen({ route }: any) {
         )
         
     };
-    //abrir ventana modal
+    //abrir ventana modal de editar sets
     const handleEditSet = (set: any) => {
         //guardar el set seleccionado
         setSelectedSet(set);
@@ -126,6 +131,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                         try {
                             await setService.deleteSet(selectedSet.id);
                             loadWorkout();
+                            setModalVisible(false);
                         } catch (error) {
                             Alert.alert('Error', 'No se puede eliminar el set')
                             
@@ -134,6 +140,26 @@ export default function WorkoutDetailScreen({ route }: any) {
                 }
             ]
         )
+    };
+
+    //fucion para abrir modal de editar workout
+    const handleOpenEditWorkout = () => {
+        setEditName(workout.name || '');
+        setEditNotes(workout.notes || '');
+        setEditDuration(workout.durationMinutes?.toString() || '');
+        setEditWorkoutModalVisible(true);
+    }
+
+    //funcion para guardar los cambios del workout
+    const handleSaveWorkout = async () => {
+        try {
+            await workoutService.updateWorkout(workoutId, editName, editNotes, parseInt(editDuration));
+            loadWorkout();
+            setEditWorkoutModalVisible(false);
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo actulizar el workout')
+            
+        }
     };
 
     if (loading) {
@@ -154,7 +180,13 @@ export default function WorkoutDetailScreen({ route }: any) {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{workout.name}</Text>
+            <View style={styles.titleHeader}>
+                <Text style={styles.title}>{workout.name}</Text>
+                <TouchableOpacity onPress={handleOpenEditWorkout}>
+                    <Text style={styles.editButton}>✏️</Text>
+                </TouchableOpacity>
+            </View>
+
             <Text style={styles.date}>{workout.date}</Text>
             
             {workout.notes && (
@@ -241,6 +273,46 @@ export default function WorkoutDetailScreen({ route }: any) {
                         <TouchableOpacity style={styles.deleteSetButton} onPress={() => handleDeleteSet()}>
                             <Text style={styles.deleteSetText}>Eliminar set</Text>
                         </TouchableOpacity>               
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal visible={editWorkoutModalVisible} transparent={true} animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Editar entrenamiento{workout.name}</Text>
+
+                        <TextInput
+                            style={styles.modalInput}
+                            value={editName}
+                            onChangeText={setEditName}
+                            placeholder="Nombre"
+                            keyboardType= "default"
+                        />
+                        <TextInput
+                            style={styles.modalInput}
+                            value={editNotes}
+                            onChangeText={setEditNotes}
+                            placeholder="notas"
+                            keyboardType="default"
+                        />
+                        <TextInput
+                            style={styles.modalInput}
+                            value={editDuration}
+                            onChangeText={setEditDuration}
+                            placeholder="minutos"
+                            keyboardType="numeric"
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.cancelButton} onPress={() => setEditWorkoutModalVisible(false)}>
+                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveWorkout()}>
+                                <Text style={styles.saveButtonText}>Guardar</Text>
+                            </TouchableOpacity>                            
+                        </View>    
+
                     </View>
                 </View>
             </Modal>
@@ -411,6 +483,15 @@ const styles = StyleSheet.create({
     deleteSetText: {
         color: '#FF3B30',
         fontSize: 14,
+    },
+    titleHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    editButton: {
+        fontSize: 20,
+        padding: 5,
     },
 
 });

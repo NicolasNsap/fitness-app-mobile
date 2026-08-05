@@ -80,7 +80,7 @@ export const workoutService = {
     }
     return response.json();
   },
-
+  //buscar workout por el id
   getWorkoutById: async (id: string) => {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/workouts/${id}`, {
@@ -94,7 +94,7 @@ export const workoutService = {
     }
     return response.json();
   },
-
+  //aniadir ejercicios al workout
   addExerciseToWorkout: async (workoutId: string, exerciseId: string, sets: any[]) => {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/workouts/${workoutId}/exercises`, {
@@ -145,7 +145,24 @@ export const workoutService = {
     if (!response.ok) {
       throw new Error('Error al elimiar el entrenamiento');
     }
+  },
+//editar entrenamiento
+  updateWorkout: async (workoutId: string, name: string, notes: string, durationMinutes: number) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/workouts/${workoutId}`,{
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({name, notes, durationMinutes}),
+    });
+    if (!response.ok) {
+      throw new Error('Error al editar el entrenamiento')
+    }
+    return response.json();
   }
+
     
 };
 

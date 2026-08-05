@@ -109,7 +109,32 @@ export default function WorkoutDetailScreen({ route }: any) {
         } catch (error) {
             Alert.alert('No se pudo actulizar el set')
         }
-    }
+    };
+
+    //eliminar un set
+    const handleDeleteSet = async () => {
+        if (!selectedSet) return;
+        //mensaje de alerta
+        Alert.alert(
+            'Eliminar set',
+            `¿Eliminar set ${selectedSet.setNumber}?`,
+            //array de botones
+            [
+                {text: 'Cancelar', style: 'cancel'},
+                {text: 'Eliminar', style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await setService.deleteSet(selectedSet.id);
+                            loadWorkout();
+                        } catch (error) {
+                            Alert.alert('Error', 'No se puede eliminar el set')
+                            
+                        }
+                    }
+                }
+            ]
+        )
+    };
 
     if (loading) {
         return (
@@ -212,7 +237,10 @@ export default function WorkoutDetailScreen({ route }: any) {
                             <TouchableOpacity onPress={() => handleSaveSet()}>
                                 <Text>Guardar</Text>
                             </TouchableOpacity>                            
-                        </View>               
+                        </View>
+                        <TouchableOpacity style={styles.deleteSetButton} onPress={() => handleDeleteSet()}>
+                            <Text style={styles.deleteSetText}>Eliminar set</Text>
+                        </TouchableOpacity>               
                     </View>
                 </View>
             </Modal>
@@ -375,6 +403,14 @@ const styles = StyleSheet.create({
     },
     updateSet: {
         padding: 5,
+    },
+    deleteSetButton: {
+        marginTop: 15,
+        alignItems: 'center',
+    },
+    deleteSetText: {
+        color: '#FF3B30',
+        fontSize: 14,
     },
 
 });

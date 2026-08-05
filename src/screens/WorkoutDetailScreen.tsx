@@ -108,7 +108,7 @@ export default function WorkoutDetailScreen({ route }: any) {
     //guardar set actulizado
     const handleSaveSet = async () => {
         try {
-            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps));
+            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps), selectedSet.completed);
             loadWorkout();
             setModalVisible(false);
         } catch (error) {
@@ -160,6 +160,21 @@ export default function WorkoutDetailScreen({ route }: any) {
             Alert.alert('Error', 'No se pudo actulizar el workout')
             
         }
+    };
+
+    //funcion para marcar los sets completados
+    const handleToggleCompleted = async (set: any) => {
+        try {
+            //el simbolo ! invierte al valor
+            const newCompleted =  !set.completed;
+            //llamada a la api
+            await setService.updateSet(set.id, set.weight, set.reps, newCompleted);
+            //recargar workout
+            loadWorkout();            
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo actulizar el set');
+            
+        } 
     };
 
     if (loading) {
@@ -229,11 +244,19 @@ export default function WorkoutDetailScreen({ route }: any) {
                             </View>
         
                             {item.sets?.map((set: any, index: number) => (
-                                <TouchableOpacity key={index} style={styles.updateSet} onPress={() => handleEditSet(set)}>
-                                    <Text  style={styles.setText}>
-                                        Set {set.setNumber}: {set.weight}kg x {set.reps}
-                                    </Text>
-                                </TouchableOpacity>
+                                <View key={index} style={styles.setRow}>
+                                    <TouchableOpacity style={styles.updateSet} onPress={() => handleEditSet(set)}>
+                                        <Text style={styles.setText}>
+                                            Set {set.setNumber}: {set.weight}kg x {set.reps}
+                                        </Text>
+                                    </TouchableOpacity>
+                            
+                                    <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
+                                        <Text style={styles.checkbox}>
+                                            {set.completed ? '✓' : '○'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
                             ))}
                         </View>
                     )}
@@ -492,6 +515,17 @@ const styles = StyleSheet.create({
     editButton: {
         fontSize: 20,
         padding: 5,
+    },
+    setRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    checkbox: {
+        fontSize: 20,
+        padding: 10,
+        color: '#007AFF',
     },
 
 });

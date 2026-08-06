@@ -20,6 +20,12 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [editName, setEditName] = useState('');
     const [editNotes, setEditNotes] = useState('');
     const [editDuration, setEditDuration] = useState('');
+    //estados de tiempo de descanso
+    const [editingRestSetId, setEditingRestSetId] = useState<string | null>(null);
+    const [editRestValue, setEditRestValue] = useState('');
+    //estados para el timer activo
+    const [activeTimerSetId, setActiveTimerSetId] = useState<string | null>(null);
+    const [timerSeconds, setTimerSeconds] = useState(0);
 
     const navigation = useNavigation();
 
@@ -30,6 +36,24 @@ export default function WorkoutDetailScreen({ route }: any) {
         }, [workoutId])
         //cuando la pantalla carga ejecuta loadWorkout() una vez
     );
+
+    //useEffect para cuenta atras del timer de descando
+    //cuando el estado del set cambia se activa el useEffect
+    useEffect(() => {
+        //accion que ejecuta
+        if (activeTimerSetId && timerSeconds > 0) {
+            const interval = setInterval(() => {
+                setTimerSeconds(prev => prev -1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+
+        if (activeTimerSetId && timerSeconds === 0) {
+            Alert.alert('¡Descanso terminado!', 'Es hora del siguiente set')
+            setActiveTimerSetId(null);
+        }
+
+    }, [activeTimerSetId, timerSeconds]);
 
     //funcion loadWorkout(cargar entrenamiento)
     const loadWorkout = async () => {
@@ -108,7 +132,7 @@ export default function WorkoutDetailScreen({ route }: any) {
     //guardar set actulizado
     const handleSaveSet = async () => {
         try {
-            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps), selectedSet.completed);
+            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps), selectedSet.completed, selectedSet.restSeconds || 0);
             loadWorkout();
             setModalVisible(false);
         } catch (error) {
@@ -168,7 +192,12 @@ export default function WorkoutDetailScreen({ route }: any) {
             //el simbolo ! invierte al valor
             const newCompleted =  !set.completed;
             //llamada a la api
-            await setService.updateSet(set.id, set.weight, set.reps, newCompleted);
+            await setService.updateSet(set.id, set.weight, set.reps, newCompleted, set.restSeconds || 0);
+            //si  marca como completado y tiene tiempo de descanso, iniciar timer
+            if ( newCompleted && set.restSeconds > 0) {
+                setActiveTimerSetId(set.id);
+                setTimerSeconds(set.restSeconds);
+            }
             //recargar workout
             loadWorkout();            
         } catch (error) {
@@ -176,6 +205,31 @@ export default function WorkoutDetailScreen({ route }: any) {
             
         } 
     };
+
+    //funcione para editar el tiempo de descando
+    const handleEditRest = (set: any) => {
+        //guardar el id del set
+        setEditingRestSetId(set.id);
+        //llenar le valor con los segundos actuales
+        setEditRestValue(set.restSeconds?.toString() || '0');
+
+    };
+
+    //funcion para guardar el timpo seteado por el uaurio
+    const handleSaveRest = async (set: any) => {
+        try {
+            //llamar a updateSet con el nuevo restSeconds
+            await setService.updateSet(set.id, set.weight, set.reps, set.completed, parseInt(editRestValue));
+            //cerrar el modo ediccion
+            setEditingRestSetId(null);
+            //recargar workout 
+            loadWorkout();
+            
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo actulizar el tiempo de descanso');
+        }
+        
+    }
 
     if (loading) {
         return (
@@ -244,18 +298,47 @@ export default function WorkoutDetailScreen({ route }: any) {
                             </View>
         
                             {item.sets?.map((set: any, index: number) => (
-                                <View key={index} style={styles.setRow}>
-                                    <TouchableOpacity style={styles.updateSet} onPress={() => handleEditSet(set)}>
-                                        <Text style={styles.setText}>
-                                            Set {set.setNumber}: {set.weight}kg x {set.reps}
-                                        </Text>
-                                    </TouchableOpacity>
-                            
-                                    <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
-                                        <Text style={styles.checkbox}>
-                                            {set.completed ? '✓' : '○'}
-                                        </Text>
-                                    </TouchableOpacity>
+                                <View key={index} style={styles.setContainer}>
+                                    <View key={index} style={styles.setRow}>
+                                        <TouchableOpacity style={styles.updateSet} onPress={() => handleEditSet(set)}>
+                                            <Text style={styles.setText}>
+                                                Set {set.setNumber}: {set.weight}kg x {set.reps}
+                                            </Text>
+                                        </TouchableOpacity>
+                                
+                                        <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
+                                            <Text style={styles.checkbox}>
+                                                {set.completed ? '✓' : '○'}
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                    </View>
+                                    {/*editando este set*/}
+                                    {editingRestSetId === set.id ? (
+                                        <View style={styles.restEditRow}>
+                                            <Text style={styles.restText}>Descando (seg): </Text>
+                                            <TextInput
+                                                style={styles.restInput}
+                                                value={editRestValue}
+                                                onChangeText={setEditRestValue}
+                                                keyboardType="numeric"
+                                                //teclado aparece automaticamente                                            
+                                                autoFocus={true}
+                                                //guardar cuando el usuario sale del input
+                                                onBlur={() => handleSaveRest(set)}
+                                            />
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity onPress={() => handleEditRest(set)}>
+                                            <Text style={[styles.restText, activeTimerSetId === set.id && styles.activeTimer]}>
+                                                {activeTimerSetId === set.id 
+                                                    ? `⏱️ ${Math.floor(timerSeconds / 60)}:${(timerSeconds % 60).toString().padStart(2, '0')}`
+                                                    : `${set.restSeconds ? `${Math.floor(set.restSeconds / 60)}:${(set.restSeconds % 60).toString().padStart(2, '0')}` : '0:00'}`
+                                                }
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
+
                                 </View>
                             ))}
                         </View>
@@ -527,5 +610,33 @@ const styles = StyleSheet.create({
         padding: 10,
         color: '#007AFF',
     },
-
+    setContainer: {
+      marginBottom: 10,
+    },
+    restText: {
+        fontSize: 15,
+        color: '#888',
+        marginLeft: 5,
+        marginTop: 2,
+        
+    },
+    restEditRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    restInput: {
+        borderWidth: 1,
+        borderColor: '#007AFF',
+        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        width: 60,
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    activeTimer: {
+        color: '#007AFF',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
 });

@@ -188,7 +188,7 @@ export const exerciseService = {
 //objeto con funciones realcionadas con sets(series)
 export const setService = {
   //metodo para actulizar set
-  updateSet: async (setId: string, weight: number, reps: number, completed: boolean) => {
+  updateSet: async (setId: string, weight: number, reps: number, completed: boolean, restSeconds: number) => {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/sets/${setId}`,{
       method:'PATCH',
@@ -197,7 +197,7 @@ export const setService = {
         'Authorization': `Bearer ${token}`,
 
       },
-      body: JSON.stringify({weight, reps, completed}),
+      body: JSON.stringify({weight, reps, completed, restSeconds}),
     });
     if (!response.ok) {
       throw new Error('Error al editar el set')

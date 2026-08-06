@@ -161,7 +161,25 @@ export const workoutService = {
       throw new Error('Error al editar el entrenamiento')
     }
     return response.json();
-  }
+  },
+
+  completeWorkout: async (workoutId: string, durationMinutes?: number) => {
+    const token = await AsyncStorage.getItem('token');
+    const url = durationMinutes
+      ? `${API_URL}/workouts/${workoutId}/complete?durationMinutes=${durationMinutes}`
+      : `${API_URL}/workouts/${workoutId}/complete`;
+    const  response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error al completar el entrenaiento');
+    }
+    return response.json();
+
+  },
 
     
 };

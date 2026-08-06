@@ -22,9 +22,12 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [editDuration, setEditDuration] = useState('');
     //estados de tiempo de descanso
     const [editingRestSetId, setEditingRestSetId] = useState<string | null>(null);
+    //valor temporal mientras el usuario escribe
     const [editRestValue, setEditRestValue] = useState('');
     //estados para el timer activo
+    //que set(serie) tiene el timer corriendo
     const [activeTimerSetId, setActiveTimerSetId] = useState<string | null>(null);
+    //segundos restantes del countDown
     const [timerSeconds, setTimerSeconds] = useState(0);
 
     const navigation = useNavigation();
@@ -40,19 +43,23 @@ export default function WorkoutDetailScreen({ route }: any) {
     //useEffect para cuenta atras del timer de descando
     //cuando el estado del set cambia se activa el useEffect
     useEffect(() => {
-        //accion que ejecuta
+        //si hay timer activo y quedan segundos
         if (activeTimerSetId && timerSeconds > 0) {
+            //crear un intervalo que se ejecuta cada 1000ms(1 segundo)
             const interval = setInterval(() => {
+                //toma el valor anterior y resta 1
                 setTimerSeconds(prev => prev -1);
             }, 1000);
+            //limpiar el intervalo cuando el efecto se re-ejecuta
             return () => clearInterval(interval);
         }
-
+        //si hay timer activo y llego a 0
         if (activeTimerSetId && timerSeconds === 0) {
             Alert.alert('¡Descanso terminado!', 'Es hora del siguiente set')
+            //desactivar timer
             setActiveTimerSetId(null);
         }
-
+        //observar  estos valores para ejecutar el useEffect
     }, [activeTimerSetId, timerSeconds]);
 
     //funcion loadWorkout(cargar entrenamiento)
@@ -186,7 +193,7 @@ export default function WorkoutDetailScreen({ route }: any) {
         }
     };
 
-    //funcion para marcar los sets completados
+    //funcion para iniciar timer al marcar
     const handleToggleCompleted = async (set: any) => {
         try {
             //el simbolo ! invierte al valor
@@ -208,7 +215,7 @@ export default function WorkoutDetailScreen({ route }: any) {
 
     //funcione para editar el tiempo de descando
     const handleEditRest = (set: any) => {
-        //guardar el id del set
+        //guardar el id del set que vamos a editar
         setEditingRestSetId(set.id);
         //llenar le valor con los segundos actuales
         setEditRestValue(set.restSeconds?.toString() || '0');
@@ -231,6 +238,17 @@ export default function WorkoutDetailScreen({ route }: any) {
         
     }
 
+    //crear funcion para terminar entrenaiento
+    const handleCompleteWorkout = async () => {
+        try {
+            await workoutService.completeWorkout(workoutId);
+            Alert.alert('¡Entrenamiento completado!', 'Buen trabajo 💪');
+            (navigation as any).navigate('Home');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo completar el entrenamiento');
+        }
+    };
+
     if (loading) {
         return (
             <View style={styles.container}>
@@ -249,10 +267,10 @@ export default function WorkoutDetailScreen({ route }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.titleHeader}>
+            <View style={styles.header}>
                 <Text style={styles.title}>{workout.name}</Text>
-                <TouchableOpacity onPress={handleOpenEditWorkout}>
-                    <Text style={styles.editButton}>✏️</Text>
+                <TouchableOpacity style={styles.completeButton} onPress={handleOpenEditWorkout}>
+                    <Text style={styles.completeButtonText}>terminar</Text>
                 </TouchableOpacity>
             </View>
 
@@ -432,6 +450,23 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         backgroundColor: '#fff',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    completeButton: {
+        backgroundColor: '#34C759',
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+    completeButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     title: {
         fontSize: 24,

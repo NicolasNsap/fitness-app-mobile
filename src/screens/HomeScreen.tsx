@@ -57,15 +57,30 @@ export default function HomeScreen() {
         </View>
         );
     }
+
+    //funcion para inicio rapido
+    const handleQuickStart = async () => {
+        try {
+            //crear workout con fecha de hoy y nombre generico
+            const today = new Date().toISOString().split('T')[0];//"2026-08-06"
+            const workout = await workoutService.createWorkout('Entrenamiento', today);
+
+            //navega  directo al detalle
+            (navigation as any).navigate('WorkoutDetail', {workoutId: workout.id});
+        } catch (error) {
+            console.log('Error al crear entrenamiento:', Error);
+            
+        }
+    };
     //mostrar los elementos que de la pantalla
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Mis Entrenamientos</Text>
             <TouchableOpacity
                 style={styles.addButton}
-                onPress={() => navigation.navigate('CreateWorkout' as never)}
+                onPress={handleQuickStart}
             >
-                <Text style={styles.addButtonText}>+</Text>
+                <Text style={styles.addButtonText}>Iniciar entrenamiento vacio</Text>
             </TouchableOpacity>
 
             {workouts.length === 0 ?(
@@ -114,16 +129,16 @@ const styles = StyleSheet.create({
     },
     addButton: {
         backgroundColor: '#007AFF',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
+        padding: 15,
+        borderRadius: 8,
         alignItems: 'center',
+        marginVertical: 15,
     },
     addButtonText: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: 16,
         fontWeight: 'bold',
+
     },
     card: {
         padding: 15,

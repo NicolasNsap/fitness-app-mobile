@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //direccion del backend en aws, una sola varible para no repetirla
-const API_URL = 'https://fitness-app-backend-production-f14c.up.railway.app/api';
+const API_URL = 'https://fitness-app-backend-production-5506.up.railway.app/api';
 
 //objeto que contendra funciones relacionadas con autenthicacion
 export const authService = {
@@ -147,7 +147,7 @@ export const workoutService = {
     }
   },
 //editar entrenamiento
-  updateWorkout: async (workoutId: string, name: string, notes: string, durationMinutes: number) => {
+  updateWorkout: async (workoutId: string, name: string, notes: string, durationSeconds: number) => {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/workouts/${workoutId}`,{
       method: 'PATCH',
@@ -155,7 +155,7 @@ export const workoutService = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({name, notes, durationMinutes}),
+      body: JSON.stringify({name, notes, durationSeconds}),
     });
     if (!response.ok) {
       throw new Error('Error al editar el entrenamiento')
@@ -163,10 +163,10 @@ export const workoutService = {
     return response.json();
   },
 
-  completeWorkout: async (workoutId: string, durationMinutes?: number) => {
+  completeWorkout: async (workoutId: string, durationSeconds?: number) => {
     const token = await AsyncStorage.getItem('token');
-    const url = durationMinutes
-      ? `${API_URL}/workouts/${workoutId}/complete?durationMinutes=${durationMinutes}`
+    const url = durationSeconds
+      ? `${API_URL}/workouts/${workoutId}/complete?durationSeconds=${durationSeconds}`
       : `${API_URL}/workouts/${workoutId}/complete`;
     const  response = await fetch(url, {
       method: 'PATCH',

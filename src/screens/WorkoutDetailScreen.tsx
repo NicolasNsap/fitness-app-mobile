@@ -10,6 +10,9 @@ export default function WorkoutDetailScreen({ route }: any) {
     const { workoutId } = route.params;//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
+    //estados para el tiempo de entrenaiento(duracion)
+    const [workoutSeconds, setWorkoutSeconds] = useState(0);
+    const [workoutTimerActive, setWorkoutTimerActive] = useState(true);
     //estados para la ventala modal de editar sets
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedSet, setSelectedSet] = useState<any>(null);
@@ -29,6 +32,10 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [activeTimerSetId, setActiveTimerSetId] = useState<string | null>(null);
     //segundos restantes del countDown
     const [timerSeconds, setTimerSeconds] = useState(0);
+    //estados para ingresar datos en cada set
+    const [editingSetId, setEditingSetId] = useState<string | null>(null);
+    const [inlineWeight, setInlineWeight] = useState('');
+    const [inlineReps, setInlineReps] = useState('');
 
     const navigation = useNavigation();
 
@@ -39,6 +46,15 @@ export default function WorkoutDetailScreen({ route }: any) {
         }, [workoutId])
         //cuando la pantalla carga ejecuta loadWorkout() una vez
     );
+    //useEffect para el timer del entrenamiento
+    useEffect(() => {
+        if (workoutTimerActive) {
+            const interval = setInterval(() => {
+                setWorkoutSeconds(prev => prev + 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [workoutTimerActive]);
 
     //useEffect para cuenta atras del timer de descando
     //cuando el estado del set cambia se activa el useEffect
@@ -241,11 +257,38 @@ export default function WorkoutDetailScreen({ route }: any) {
     //crear funcion para terminar entrenaiento
     const handleCompleteWorkout = async () => {
         try {
-            await workoutService.completeWorkout(workoutId);
+            //detener el timer
+            setWorkoutTimerActive(false);
+
+            await workoutService.completeWorkout(workoutId, workoutSeconds);
             Alert.alert('¡Entrenamiento completado!', 'Buen trabajo 💪');
             (navigation as any).navigate('Home');
         } catch (error) {
             Alert.alert('Error', 'No se pudo completar el entrenamiento');
+        }
+    };
+
+    //funcion para cada edicion de set
+    const handleStartInlineEdit = (set: any) => {
+        setEditingSetId(set.id);
+        setInlineWeight(set.weight?.toString() || '');
+        setInlineReps(set.reps?.toString() || '');
+    };
+
+    //funcion para guardar info de los set en linea
+    const handleSaveInlineEdit = async (set: any) => {
+        try {
+            await setService.updateSet(
+                set.id, 
+                parseFloat(inlineWeight), 
+                parseInt(inlineReps), 
+                set.completed, 
+                set.restSeconds || 0
+            );
+            setEditingSetId(null);
+            loadWorkout();
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo actualizar el set');
         }
     };
 
@@ -268,10 +311,16 @@ export default function WorkoutDetailScreen({ route }: any) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>{workout.name}</Text>
-                <TouchableOpacity style={styles.completeButton} onPress={handleOpenEditWorkout}>
+                <View>
+                    <Text style={styles.title}>{workout.name}</Text>
+                    <Text style={styles.timerText}>
+                        ⏱️ {Math.floor(workoutSeconds / 3600)}:{(Math.floor(workoutSeconds / 60) % 60).toString().padStart(2, '0')}:{(workoutSeconds % 60).toString().padStart(2, '0')}
+                    </Text>
+                </View>
+                <TouchableOpacity style={styles.completeButton} onPress={handleCompleteWorkout}>
                     <Text style={styles.completeButtonText}>terminar</Text>
                 </TouchableOpacity>
+                
             </View>
 
             <Text style={styles.date}>{workout.date}</Text>
@@ -318,18 +367,39 @@ export default function WorkoutDetailScreen({ route }: any) {
                             {item.sets?.map((set: any, index: number) => (
                                 <View key={index} style={styles.setContainer}>
                                     <View key={index} style={styles.setRow}>
-                                        <TouchableOpacity style={styles.updateSet} onPress={() => handleEditSet(set)}>
-                                            <Text style={styles.setText}>
-                                                Set {set.setNumber}: {set.weight}kg x {set.reps}
-                                            </Text>
-                                        </TouchableOpacity>
-                                
+                                        <Text style={styles.setNumber}>{set.setNumber}</Text>
+
+                                        {editingSetId === set.id ? (
+                                            <>
+                                                <TextInput
+                                                    style={styles.inlineInput}
+                                                    value={inlineWeight}
+                                                    onChangeText={setInlineWeight}
+                                                    keyboardType="numeric"
+                                                    placeholder="kg"
+                                                    autoFocus={true}
+                                                />
+                                                <TextInput
+                                                    style={styles.inlineInput}
+                                                    value={inlineReps}
+                                                    onChangeText={setInlineReps}
+                                                    keyboardType="numeric"
+                                                    placeholder="reps"
+                                                    onBlur={() => handleSaveInlineEdit(set)}
+                                                />
+                                            </>
+                                        ) : (
+                                            <TouchableOpacity style={styles.setValues} onPress={() => handleStartInlineEdit(set)}>
+                                                <Text style={styles.setText}>{set.weight}kg</Text>
+                                                <Text style={styles.setText}>{set.reps} rep</Text>
+                                            </TouchableOpacity>
+                                        )}
+
                                         <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
                                             <Text style={styles.checkbox}>
                                                 {set.completed ? '✓' : '○'}
                                             </Text>
                                         </TouchableOpacity>
-
                                     </View>
                                     {/*editando este set*/}
                                     {editingRestSetId === set.id ? (
@@ -467,6 +537,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    timerText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 5,
     },
     title: {
         fontSize: 24,
@@ -673,5 +748,27 @@ const styles = StyleSheet.create({
         color: '#007AFF',
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    setNumber: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        width: 25,
+        color: '#333',
+    },
+    inlineInput: {
+        borderWidth: 1,
+        borderColor: '#007AFF',
+        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        width: 60,
+        fontSize: 14,
+        textAlign: 'center',
+        marginHorizontal: 5,
+    },
+    setValues: {
+        flexDirection: 'row',
+        flex: 1,
+        justifyContent: 'space-around',
     },
 });

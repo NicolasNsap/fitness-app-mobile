@@ -97,6 +97,12 @@ export default function HomeScreen() {
                         >
                             <Text style={styles.cardTitle}>{item.name}</Text>
                             <Text>{item.date}</Text>
+                            <Text>
+                                {item.durationSeconds
+                                    ? `⏱️ ${Math.floor(item.durationSeconds / 3600)}:${Math.floor((item.durationSeconds % 3600) / 60).toString().padStart(2, '0')}:${(item.durationSeconds % 60).toString().padStart(2, '0')}`  // ✅
+                                    : ''
+                                }
+                                </Text>
                         </TouchableOpacity>
                     )}
                 />

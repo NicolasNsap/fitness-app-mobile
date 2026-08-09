@@ -205,6 +205,23 @@ export const exerciseService = {
 
 //objeto con funciones realcionadas con sets(series)
 export const setService = {
+  //metodo para crear set
+  createSet: async (workoutExerciseId: string, setNumber: number, weight: number, reps: number, restSeconds: number) => {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/sets/workout-exercise/${workoutExerciseId}`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ setNumber, weight, reps, restSeconds}),
+    });
+    if (!response.ok) {
+      throw new Error('Error al crear workout')
+    }
+    return response.json();
+  
+  },
   //metodo para actulizar set
   updateSet: async (setId: string, weight: number, reps: number, completed: boolean, restSeconds: number) => {
     const token = await AsyncStorage.getItem('token');

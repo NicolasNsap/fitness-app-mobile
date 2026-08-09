@@ -168,6 +168,25 @@ export default function WorkoutDetailScreen({ route }: any) {
         )
         
     };
+    //metodo para agregar un set(serie)
+    const handleAddSet = async (exercise: any) => {
+        try {
+            //obtener ultimo set del ejercicio
+            const lastSet = exercise.sets[exercise.sets.length -1];
+            //calcular valores del nuevo set
+            const newSetNumber = lastSet ? lastSet.setNumber + 1 : 1;
+            const newWeight = lastSet ? lastSet.weight : 0;
+            const newReps = lastSet ? lastSet.reps : 0;
+            const newRestSeconds = lastSet ? lastSet.restSeconds : 120;
+            //llamar a la api
+            await setService.createSet(exercise.id, newSetNumber, newWeight, newReps, newRestSeconds);
+            //recargar
+            loadWorkout();
+
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo agregar el set');
+        }
+    }
     //abrir ventana modal de editar sets
     const handleEditSet = (set: any) => {
         //guardar el set seleccionado
@@ -455,7 +474,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                                         ) : (
                                             <TouchableOpacity style={styles.setValues} onPress={() => handleStartInlineEdit(set)}>
                                                 <Text style={styles.setText}>{set.weight}kg</Text>
-                                                <Text style={styles.setText}>{set.reps} rep</Text>
+                                                <Text style={styles.setText}>{set.reps} reps</Text>
                                             </TouchableOpacity>
                                         )}
 
@@ -493,6 +512,9 @@ export default function WorkoutDetailScreen({ route }: any) {
 
                                 </View>
                             ))}
+                            <TouchableOpacity style={styles.addSetButton} onPress={() => handleAddSet(item)}>
+                                <Text style={styles.addSetButtonText}>agregar serie</Text>
+                            </TouchableOpacity>
                         </View>
                     )}
                 />
@@ -643,6 +665,7 @@ const styles = StyleSheet.create({
     },
     timerText: {
         fontSize: 16,
+        alignItems: 'center',
         color: '#666',
         marginTop: 5,
     },
@@ -890,6 +913,17 @@ const styles = StyleSheet.create({
     catalogExerciseMuscle: {
         fontSize: 14,
         color: '#666',
+    },
+    addSetButton: {
+        backgroundColor: '#007AFF',
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    addSetButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
  
 });

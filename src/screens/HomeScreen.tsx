@@ -66,7 +66,7 @@ export default function HomeScreen() {
             const workout = await workoutService.createWorkout('Entrenamiento', today);
 
             //navega  directo al detalle
-            (navigation as any).navigate('WorkoutDetail', {workoutId: workout.id});
+            (navigation as any).navigate('WorkoutDetail', { workoutId: workout.id, isNew: true });
         } catch (error) {
             console.log('Error al crear entrenamiento:', Error);
             
@@ -93,7 +93,7 @@ export default function HomeScreen() {
                     renderItem={({ item }) => (
                         <TouchableOpacity 
                             style={styles.card}
-                            onPress={() => (navigation as any).navigate('WorkoutDetail', { workoutId: item.id })}
+                            onPress={() => (navigation as any).navigate('WorkoutDetail', { workoutId: item.id, isNew: false })}
                         >
                             <Text style={styles.cardTitle}>{item.name}</Text>
                             <Text>{item.date}</Text>

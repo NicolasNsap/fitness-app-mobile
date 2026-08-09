@@ -7,12 +7,12 @@ import { exerciseService, setService, workoutService } from "../services/api";
 //{ route } recibe los parametros de navegacion
 export default function WorkoutDetailScreen({ route }: any) {
     //workoutId es el id  del workout que tocamos
-    const { workoutId } = route.params;//route.params contiene los datos que le  pasamos
+    const { workoutId, isNew } = route.params as { workoutId: string, isNew: boolean };//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
     //estados para el tiempo de entrenaiento(duracion)
     const [workoutSeconds, setWorkoutSeconds] = useState(0);
-    const [workoutTimerActive, setWorkoutTimerActive] = useState(true);
+    const [workoutTimerActive, setWorkoutTimerActive] = useState(isNew);
     //estados para la ventala modal de editar sets
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedSet, setSelectedSet] = useState<any>(null);
@@ -42,6 +42,8 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [exerciseList, setExerciseList] = useState([]);
     //estados para selecionar ejercicios del modal de catalogo de ejercicios 
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+
+
 
     const navigation = useNavigation();
 

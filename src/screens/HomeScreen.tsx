@@ -75,7 +75,7 @@ export default function HomeScreen() {
     //mostrar los elementos que de la pantalla
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Mis Entrenamientos</Text>
+            <Text style={styles.title}>Mis entrenamientos</Text>
             <TouchableOpacity
                 style={styles.addButton}
                 onPress={handleQuickStart}

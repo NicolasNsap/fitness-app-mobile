@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput} from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { setService, workoutService } from "../services/api";
+import { exerciseService, setService, workoutService } from "../services/api";
 
 
 //{ route } recibe los parametros de navegacion
@@ -36,6 +36,12 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [editingSetId, setEditingSetId] = useState<string | null>(null);
     const [inlineWeight, setInlineWeight] = useState('');
     const [inlineReps, setInlineReps] = useState('');
+    //modal para agredar ejercicios
+    const [addExerciseModal, setAddExerciseModal] = useState(false);
+    //estados para el catalogo de ejercicios
+    const [exerciseList, setExerciseList] = useState([]);
+    //estados para selecionar ejercicios del modal de catalogo de ejercicios 
+    const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
     const navigation = useNavigation();
 
@@ -55,6 +61,16 @@ export default function WorkoutDetailScreen({ route }: any) {
             return () => clearInterval(interval);
         }
     }, [workoutTimerActive]);
+
+    //useEffect para activar el modal
+    useEffect(() => {
+        //validar si modal esta en true
+        if (addExerciseModal === true){
+            //cargar la lista de ejercicios del catalogo
+            loadExerciseList();
+        }
+        //observando comportamiento 
+    },[addExerciseModal]);
 
     //useEffect para cuenta atras del timer de descando
     //cuando el estado del set cambia se activa el useEffect
@@ -116,6 +132,17 @@ export default function WorkoutDetailScreen({ route }: any) {
             ]
         )
     };
+
+    //cargar la lista de ejercicios para el modal
+    const loadExerciseList = async () => {
+        try {
+            const exercises = await exerciseService.getExercises();
+            setExerciseList(exercises);
+        } catch (error) {
+            console.log('Error', error);
+            
+        }
+    }
 
     //eliminar un entrenamiento
     const handleDeleteWorkout = (workoutId: string, workoutName: string) => {
@@ -292,6 +319,43 @@ export default function WorkoutDetailScreen({ route }: any) {
         }
     };
 
+    //funcion para esetados de seleccion de ejercicios del catalogo
+    const toggleSelectedExercises = (exercise: any) => {
+        //verficar si el id ya esta en la lista
+        if (selectedExercises.includes(exercise.id)) {
+            //ya esta seleccionado, quitalo
+            //crea un nuevo array sin el elemento que queremos quitar
+            setSelectedExercises(selectedExercises.filter(id => id !== exercise.id))
+        }else {
+            //no esta seleccionado, agregalo
+            //...(spread) copia todos los elementos y agrega uno nuevo al final
+            setSelectedExercises([...selectedExercises, exercise.id]);
+        }
+
+    };
+
+    //metodo al momento de cliquear el boton cancelar en el modal
+    const handleCancelExercisesModal = () => {
+        setAddExerciseModal(false);
+        setSelectedExercises([]);
+    }
+    //funcion para agregar ejercicios al workour desde el catalogo(modal)
+    const handleAddExercisesModal = async () => {
+        try {
+            for (const exerciseId of selectedExercises) {
+                await workoutService.addExerciseToWorkout(workoutId, exerciseId, [{ setNumber: 1, weight: 0, reps: 0, restSeconds: 120 }]);
+            }
+            setAddExerciseModal(false);
+            setSelectedExercises([]);
+            loadWorkout();
+
+        } catch (error) {
+            console.log('Error', error);
+            
+        }
+    };
+
+
     if (loading) {
         return (
             <View style={styles.container}>
@@ -338,7 +402,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                 <Text style={styles.sectionTitle}>Ejercicios</Text>
                 <TouchableOpacity 
                     style={styles.addButton}
-                    onPress={() => (navigation as any).navigate('AddExercise', { workoutId: workout.id })}
+                    onPress={() => setAddExerciseModal(true)}
                 >
                     <Text style={styles.addButtonText}>+</Text>
                 </TouchableOpacity>
@@ -509,6 +573,45 @@ export default function WorkoutDetailScreen({ route }: any) {
 
                     </View>
                 </View>
+            </Modal>
+            <Modal visible={addExerciseModal} transparent={true} animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>catalogo de ejercicios</Text>
+                        <FlatList 
+                            data={exerciseList} 
+                            keyExtractor={(item: any) => item.id}
+                            renderItem={({item}) => (
+                                <TouchableOpacity
+                                    //al tocar selecciona/deselecciona
+                                    onPress={() => toggleSelectedExercises(item)}
+                                    style={[
+                                        styles.catalogExerciseItem,
+                                        //esta seleccionado  ,  si esta seleccionado aplica estilo verde
+                                        selectedExercises.includes(item.id) && styles.catalogExerciseItemSelected
+                                    ]}
+                                >
+                                    <Text style={styles.catalogExerciseName}>{item.name}</Text>
+                                    <Text style={styles.catalogExerciseMuscle}>{item.muscleGroup}</Text>
+
+                                </TouchableOpacity>
+
+                            )}
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.cancelButton} onPress={handleCancelExercisesModal}>
+                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.saveButton} onPress={handleAddExercisesModal}>
+                                <Text style={styles.saveButtonText}>Agregar ({selectedExercises.length})</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                    </View>
+
+                </View>
+
             </Modal>
         </View>
     );
@@ -771,4 +874,22 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-around',
     },
+        catalogExerciseItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        backgroundColor: '#f5f5f5',
+    },
+    catalogExerciseItemSelected: {
+        backgroundColor: '#34C759',
+    },
+    catalogExerciseName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    catalogExerciseMuscle: {
+        fontSize: 14,
+        color: '#666',
+    },
+ 
 });

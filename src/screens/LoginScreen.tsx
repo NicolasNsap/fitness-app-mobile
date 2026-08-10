@@ -27,8 +27,8 @@ export default function LoginScreen(){
         try{
             const data = await authService.login(username, password);
             await AsyncStorage.setItem('token', data.token); //guardar el token
-            navigation.navigate('Home' as never);//navegar a home
-            Alert.alert('Exito', 'Login correcto');
+            navigation.navigate('MainTabs' as never);//navegar a home
+            
             console.log('Token guardado');
         } catch (error) {
             Alert.alert('Error', 'Credenciales inválidas');

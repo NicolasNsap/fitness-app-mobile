@@ -159,7 +159,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                     onPress: async () => {
                         try {
                             await workoutService.deleteWorkout(workoutId);
-                            (navigation as any).navigate('Home');
+                            (navigation as any).navigate('MainTabs');
                         } catch (error) {
                             Alert.alert('Error', 'No se puede eliminar el entrenamiento');
                             
@@ -310,7 +310,7 @@ export default function WorkoutDetailScreen({ route }: any) {
 
             await workoutService.completeWorkout(workoutId, workoutSeconds);
             Alert.alert('¡Entrenamiento completado!', 'Buen trabajo 💪');
-            (navigation as any).navigate('Home');
+            (navigation as any).navigate('MainTabs');
         } catch (error) {
             Alert.alert('Error', 'No se pudo completar el entrenamiento');
         }

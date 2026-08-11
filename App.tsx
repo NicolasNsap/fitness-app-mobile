@@ -13,6 +13,8 @@ import AddSetsScreen from "./src/screens/AddSetsScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import HistoryScreen from "./src/screens/HistoryScreen";
 import ExercisesScreen from "./src/screens/ExercisesScreen";
+//imports para iconos
+import { Ionicons } from "@expo/vector-icons";
 
 const Stack = createNativeStackNavigator();
 //Stack.Navigator define un "stack" de pantallas (como una pila de cartas)
@@ -20,12 +22,38 @@ const Stack = createNativeStackNavigator();
 //initialRouteName="Login" la primera pantalla que se muestra
 //headerShown: false oculta el header en Login(oculta barra superior)
 
+//creacion o instanciacon del tabNavigator
 const Tab = createBottomTabNavigator();
 
 //crear componente de Tabs
 function MainTabs() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      //screenOptions funcion que recibe informacion de cada pantalla(route) y retorna la configuracion
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          //iconName variable que guardara el nombre del icono
+          //keyof typeof Ionicons.glyphMap: TypeScript solo acepto nombres de iconos que existen en IonIcons
+          let iconName: keyof typeof Ionicons.glyphMap;
+          //route.name -> nombre de la pantalla actual
+          if (route.name === 'Home') {
+            //focused -> el tab esta seleccionado
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'History') {
+            iconName = focused ? 'time' : 'time-outline';
+          } else if (route.name === 'Exercises') {
+            iconName = focused ? 'barbell' : 'barbell-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          } else {
+            iconName = 'help-outline';
+          }
+          //retornar el icono
+          return <Ionicons name={iconName} size={size} color={color} />;
+        }
+
+      })}  
+    >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio'}} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: 'Historial' }} />
       <Tab.Screen name="Exercises" component={ExercisesScreen} options={{ title: 'Ejercicios' }} />
@@ -50,7 +78,7 @@ export default function App(){
         <Stack.Screen
           name="MainTabs"
           component={MainTabs}
-          options={{ headerShown: false}}
+          options={{ headerShown: false}}//tabNavigator ya tiene su propio header
         />
         <Stack.Screen
           name="CreateWorkout"

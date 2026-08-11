@@ -27,7 +27,7 @@ export default function LoginScreen(){
         try{
             const data = await authService.login(username, password);
             await AsyncStorage.setItem('token', data.token); //guardar el token
-            navigation.navigate('MainTabs' as never);//navegar a home
+            navigation.navigate('MainTabs' as never);//navegar a mainTabs
             
             console.log('Token guardado');
         } catch (error) {

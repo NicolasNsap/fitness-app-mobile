@@ -15,6 +15,8 @@ import HistoryScreen from "./src/screens/HistoryScreen";
 import ExercisesScreen from "./src/screens/ExercisesScreen";
 //imports para iconos
 import { Ionicons } from "@expo/vector-icons";
+//import ThemeProvider
+import { ThemeProvider, useTheme } from "./src/theme/ThemeContext";
 
 const Stack = createNativeStackNavigator();
 //Stack.Navigator define un "stack" de pantallas (como una pila de cartas)
@@ -31,6 +33,16 @@ function MainTabs() {
     <Tab.Navigator
       //screenOptions funcion que recibe informacion de cada pantalla(route) y retorna la configuracion
       screenOptions={({ route }) => ({
+        headerStyle: {
+          backgroundColor:'#0D1117',
+        },
+        headerTintColor: '#FFFFFF', 
+        tabBarStyle: {
+          backgroundColor: '#0D1117',
+          borderTopColor: '#30363D',
+        },
+        tabBarActiveTintColor: '#4A9EFF',
+        tabBarInactiveTintColor: '#8B949E',
         tabBarIcon: ({ focused, color, size }) => {
           //iconName variable que guardara el nombre del icono
           //keyof typeof Ionicons.glyphMap: TypeScript solo acepto nombres de iconos que existen en IonIcons
@@ -63,44 +75,47 @@ function MainTabs() {
 }
 export default function App(){
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false}}
-        />
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{ headerShown: false}}
-        />
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{ headerShown: false}}//tabNavigator ya tiene su propio header
-        />
-        <Stack.Screen
-          name="CreateWorkout"
-          component={CreateWorkoutScreen}
-          options={{ title: 'Nuevo Entrenaiento'}}
-        />
-        <Stack.Screen
-          name="WorkoutDetail"
-          component={WorkoutDetailScreen}
-          options={{title: 'Detalle'}}
-        />
-        <Stack.Screen
-          name="AddExercise"
-          component={AddExerciseScreen}
-          options={{ title: 'Agregar Ejercicio'}}
-        />
-        <Stack.Screen
-          name="AddSets"
-          component={AddSetsScreen}
-          options={{title: 'Agregar Sets'}}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    //todas las pantallas estaran  dentro del ThemeProvider pueden usar useTheme() 
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false}}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false}}
+          />
+          <Stack.Screen
+            name="MainTabs"
+            component={MainTabs}
+            options={{ headerShown: false}}//tabNavigator ya tiene su propio header
+          />
+          <Stack.Screen
+            name="CreateWorkout"
+            component={CreateWorkoutScreen}
+            options={{ title: 'Nuevo Entrenaiento'}}
+          />
+          <Stack.Screen
+            name="WorkoutDetail"
+            component={WorkoutDetailScreen}
+            options={{title: 'Detalle'}}
+          />
+          <Stack.Screen
+            name="AddExercise"
+            component={AddExerciseScreen}
+            options={{ title: 'Agregar Ejercicio'}}
+          />
+          <Stack.Screen
+            name="AddSets"
+            component={AddSetsScreen}
+            options={{title: 'Agregar Sets'}}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>  
   )
 }

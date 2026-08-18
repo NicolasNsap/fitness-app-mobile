@@ -9,13 +9,21 @@ import { workoutService } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //useNavigation -> poder nevegar a otra pantalla
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../theme/ThemeContext';
+
+
 
 export default function HomeScreen() {
+    //acceso a la navegacion para para poder cambiar de pantalla
+    const navigation = useNavigation();
+
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
+
     const [workouts, setWorkouts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    //acceso a la navegacion para para poder cambiar de pantalla
-    const navigation = useNavigation();
+    
 
 
     //corre cada vez que la pantalla aparece en pantalla
@@ -77,10 +85,11 @@ export default function HomeScreen() {
         <View style={styles.container}>
             <Text style={styles.title}>Mis entrenamientos</Text>
             <TouchableOpacity
-                style={styles.addButton}
+                //boton para inico rapido de entrenamiento
+                style={styles.quickStartButton}
                 onPress={handleQuickStart}
             >
-                <Text style={styles.addButtonText}>Iniciar entrenamiento vacio</Text>
+                <Text style={styles.quickStartText}>Iniciar entrenamiento vacio</Text>
             </TouchableOpacity>
 
             {workouts.length === 0 ?(
@@ -90,82 +99,74 @@ export default function HomeScreen() {
                 <FlatList
                     data={workouts}
                     keyExtractor={(item: any) => item.id}
-                    renderItem={({ item }) => (
+                    renderItem={({ item: workout }) => (
                         <TouchableOpacity 
-                            style={styles.card}
-                            onPress={() => (navigation as any).navigate('WorkoutDetail', { workoutId: item.id, isNew: false })}
+                            style={styles.workoutItem}
+                            onPress={() => (navigation as any).navigate('WorkoutDetail', { workoutId: workout.id, isNew: false })}
                         >
-                            <Text style={styles.cardTitle}>{item.name}</Text>
-                            <Text>{item.date}</Text>
-                            <Text>
-                                {item.durationSeconds
-                                    ? `⏱️ ${Math.floor(item.durationSeconds / 3600)}:${Math.floor((item.durationSeconds % 3600) / 60).toString().padStart(2, '0')}:${(item.durationSeconds % 60).toString().padStart(2, '0')}`  // ✅
+                            <Text style={styles.workoutName}>{workout.name}</Text>
+                            <Text style={styles.workoutDate}>{workout.date}</Text>
+                            <Text style={styles.workoutTimeDuration}>
+                                {workout.durationSeconds
+                                    ? `⏱️ ${Math.floor(workout.durationSeconds / 3600)}:${Math.floor((workout.durationSeconds % 3600) / 60).toString().padStart(2, '0')}:${(workout.durationSeconds % 60).toString().padStart(2, '0')}`  // ✅
                                     : ''
                                 }
-                                </Text>
+                            </Text>
                         </TouchableOpacity>
                     )}
                 />
             )}
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handlelogout}>
-                <Text style={styles.buttonText}>Cerrar Sesion</Text>
-            </TouchableOpacity>
         </View>
     );
     
 }
 
 //estilo que se le dara a los elementos de la pantalla
-const styles = StyleSheet.create({
+const createStyles = (theme: any) =>  StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
+        backgroundColor: theme.background,
     },
     title: {
+        color: theme.textPrimary,
         fontSize: 24,
         fontWeight: 'bold',
     },
-    addButton: {
-        backgroundColor: '#007AFF',
+    quickStartButton: {
+        backgroundColor: theme.cardBackground,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginVertical: 15,
     },
-    addButtonText: {
-        color: '#fff',
+    quickStartText: {
+        color: theme.textPrimary,
         fontSize: 16,
         fontWeight: 'bold',
 
     },
-    card: {
+    workoutItem: {
         padding: 15,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.cardBackground,
         borderRadius: 8,
         marginBottom: 10,
     },
-    cardTitle: {
+    workoutName: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: theme.textPrimary,
     },
-    logoutButton: {
-        backgroundColor: '#FF3B30',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
+    workoutDate: {
+        fontSize: 13,
         fontWeight: 'bold',
+        color: theme.textSecundary,
     },
+    workoutTimeDuration: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: theme.textSecundary,
+    },
+    
 });

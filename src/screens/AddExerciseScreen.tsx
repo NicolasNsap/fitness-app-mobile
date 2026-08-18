@@ -2,10 +2,15 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator }
 import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { exerciseService } from '../services/api';
+import { useTheme } from "../theme/ThemeContext";
 
 
 export default function AddExerciseScreen({route}: any) {
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
+        
     //workout donde se agragaran los ejercicios
+
     const { workoutId } = route.params;
     //lista de ejercicios dosponibles
     const [exercises, setExercises] = useState([]);
@@ -71,11 +76,11 @@ export default function AddExerciseScreen({route}: any) {
 
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: theme.background,
     },
     title: {
         fontSize: 20,
@@ -84,13 +89,14 @@ const styles = StyleSheet.create({
     },
     card: {
         padding: 15,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.cardBackground,
         borderRadius: 8,
         marginBottom: 10,
     },
     exerciseName: {
         fontSize: 16,
         fontWeight: '600',
+        color: theme.textPrimary,
     },
     muscleGroup: {
         fontSize: 14,

@@ -1,8 +1,13 @@
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, TextInput, Modal} from "react-native";
 import { useEffect, useState } from "react";
 import { exerciseService } from "../services/api";
+import { useTheme } from "../theme/ThemeContext";
+
+
 
 export default function ExercisesScreen() {
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
     //estados para ejercicios y busqueda
     const [exercises, setExercises ] = useState([]);
     const [ searchText, setSearchText ] = useState('');
@@ -39,11 +44,11 @@ export default function ExercisesScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Ejercicios</Text>
             {/*cuadro de texto para filtrar por nombre*/}
             <TextInput 
                 style={styles.searchInput}
                 placeholder="buscar ejercicio..."
+                placeholderTextColor={theme.textSecundary}
                 value={searchText}
                 onChangeText={setSearchText}
             />
@@ -100,10 +105,10 @@ export default function ExercisesScreen() {
             <FlatList
                 data={filteredExercises}
                 keyExtractor={(item: any) => item.id}
-                renderItem={({item}) => (
+                renderItem={({item: exercise}) => (
                     <TouchableOpacity style={styles.exerciseCard}>
-                        <Text style={styles.exerciseName}>{item.name}</Text>
-                        <Text style={styles.exerciseMuscle}>{item.muscleGroup}</Text>
+                        <Text style={styles.exerciseName}>{exercise.name}</Text>
+                        <Text style={styles.exerciseMuscle}>{exercise.muscleGroup}</Text>
                     </TouchableOpacity>
                 )}
             />
@@ -113,27 +118,24 @@ export default function ExercisesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
+        backgroundColor: theme.background,
     },
     searchInput: {
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: theme.border,
         borderRadius: 10,
         padding: 12,
         marginBottom: 15,
         fontSize: 16,
+        backgroundColor: theme.inputBackground,
+        color: theme.textPrimary,
     },
     exerciseCard: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.cardBackground,
         padding: 15,
         borderRadius: 10,
         marginBottom: 10,
@@ -141,10 +143,11 @@ const styles = StyleSheet.create({
     exerciseName: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: theme.textPrimary,
     },
     exerciseMuscle: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecundary,
         marginTop: 5,
     },
     filterRow: {
@@ -153,33 +156,35 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     filterButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: theme.primary,
         paddingVertical: 6,
         paddingHorizontal: 15,
         borderRadius: 8,
     },
     filterButtonText: {
-        color: '#fff',
+        color: theme.textPrimary,
         textAlign: 'center',
     },
     clearFilter: {
-        color: '#FF3B30',
+        color: theme.danger,
         marginLeft: 10,
         fontWeight: 'bold',
     },
     dropdown: {
-        backgroundColor: '#fff',
+        backgroundColor: theme.cardBackground,
         borderRadius: 10,
         maxHeight: '60%',
         alignSelf: 'flex-start',
     },
     dropdownItem: {
+        backgroundColor: theme.cardBackground,
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        borderBottomColor: theme.border,
     },
     dropdownText: {
         fontSize: 16,
+        color: theme.textPrimary,
     },
     modalOverlay: {
         flex: 1,
@@ -190,3 +195,4 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
     },
 });
+

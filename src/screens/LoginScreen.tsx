@@ -4,10 +4,12 @@ import { useState,  } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useTheme } from '../theme/ThemeContext';
 
 
 export default function LoginScreen(){
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
     //datos que cambian
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -45,6 +47,7 @@ export default function LoginScreen(){
             <TextInput
                 style={styles.input}
                 placeholder="Usuario"
+                placeholderTextColor={theme.textSecundary}
                 value={username}
                 onChangeText={setUsername}
             />
@@ -52,6 +55,7 @@ export default function LoginScreen(){
             <TextInput
                 style={styles.input}
                 placeholder="Contraseña"
+                placeholderTextColor={theme.textSecundary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -77,18 +81,19 @@ export default function LoginScreen(){
 
 }
 //estilos
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex:1,
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: '#fff'
+        backgroundColor: theme.background,
     },
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 40,
+        color: theme.textPrimary,
     },
     input: {
         borderWidth: 1,
@@ -97,6 +102,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 15,
         fontSize: 16,
+        color: theme.textPrimary,
+
     },
     button: {
         backgroundColor: '#007AFF',

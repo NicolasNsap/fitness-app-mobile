@@ -2,10 +2,14 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, 
 import { useState, useEffect, useCallback } from "react";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { exerciseService, setService, workoutService } from "../services/api";
-
+import { useTheme } from "../theme/ThemeContext";
+import ExercisesScreen from "./ExercisesScreen";
 
 //{ route } recibe los parametros de navegacion
 export default function WorkoutDetailScreen({ route }: any) {
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
+    
     //workoutId es el id  del workout que tocamos
     const { workoutId, isNew } = route.params as { workoutId: string, isNew: boolean };//route.params contiene los datos que le  pasamos
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
@@ -318,8 +322,11 @@ export default function WorkoutDetailScreen({ route }: any) {
 
     //funcion para cada edicion de set
     const handleStartInlineEdit = (set: any) => {
+        //editar set(serie)
         setEditingSetId(set.id);
+        //editar peso
         setInlineWeight(set.weight?.toString() || '');
+        //editar repeticiones
         setInlineReps(set.reps?.toString() || '');
     };
 
@@ -397,11 +404,12 @@ export default function WorkoutDetailScreen({ route }: any) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.title}>{workout.name}</Text>
+                    <TextInput style={styles.title}>{workout.name}</TextInput>
                     <Text style={styles.timerText}>
                         ⏱️ {Math.floor(workoutSeconds / 3600)}:{(Math.floor(workoutSeconds / 60) % 60).toString().padStart(2, '0')}:{(workoutSeconds % 60).toString().padStart(2, '0')}
                     </Text>
                 </View>
+                {/* boton para terminar entrenamiento */}
                 <TouchableOpacity style={styles.completeButton} onPress={handleCompleteWorkout}>
                     <Text style={styles.completeButtonText}>terminar</Text>
                 </TouchableOpacity>
@@ -413,12 +421,13 @@ export default function WorkoutDetailScreen({ route }: any) {
             {workout.notes && (
                 <Text style={styles.notes}>{workout.notes}</Text>
             )}
-
-            <View style={styles.stats}>
-                <Text>Ejercicios: {workout.totalExercises}</Text>
-                <Text>Sets: {workout.totalSets}</Text>
+            {/* tarjeta contador ejercicios y sets*/}
+            <View style={styles.countExerciseSets}>
+                <Text style={styles.totalExercises}>Ejercicios: {workout.totalExercises}</Text>
+                <Text style={styles.totalSets}>Sets: {workout.totalSets}</Text>
             </View>
 
+            {/* titulo de ejercicios y boton de agregar ejercicios */}
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Ejercicios</Text>
                 <TouchableOpacity 
@@ -429,6 +438,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                 </TouchableOpacity>
             </View>
 
+            {/* agregar ejecicios al entrenamiento */}
             {workout.exercises?.length === 0 ? (
                 <Text style={styles.empty}>No hay ejercicios aún</Text>
             ) : (
@@ -438,18 +448,20 @@ export default function WorkoutDetailScreen({ route }: any) {
                     //ID unico de cada uno de los datos
                     keyExtractor={(item: any) => item.id}
                     //renderItem indica como dibujar cada elemento de la lista
-                    renderItem={({ item }) => (
+                    renderItem={({ item: exercise }) => (
                         <View style={styles.exerciseCard}>
                             <View style={styles.exerciseHeader}>
-                                <Text style={styles.exerciseName}>{item.exerciseName}</Text>
+                                <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+
+                                {/*boton para eliminar ejercicios */}
                                 <TouchableOpacity 
-                                    onPress={() => handleDeleteExercise(item.id, item.exerciseName)}
+                                    onPress={() => handleDeleteExercise(exercise.id, exercise.exerciseName)}
                                 >
-                                    <Text style={styles.deleteButton}>✕</Text>
+                                    <Text style={styles.deleteButton}>x</Text>
                                 </TouchableOpacity>
                             </View>
-        
-                            {item.sets?.map((set: any, index: number) => (
+
+                            {exercise.sets?.map((set: any, index: number) => (
                                 <View key={index} style={styles.setContainer}>
                                     <View key={index} style={styles.setRow}>
                                         <Text style={styles.setNumber}>{set.setNumber}</Text>
@@ -457,15 +469,17 @@ export default function WorkoutDetailScreen({ route }: any) {
                                         {editingSetId === set.id ? (
                                             <>
                                                 <TextInput
-                                                    style={styles.inlineInput}
+                                                    style={styles.inlineInputWeight}
                                                     value={inlineWeight}
                                                     onChangeText={setInlineWeight}
                                                     keyboardType="numeric"
                                                     placeholder="kg"
                                                     autoFocus={true}
                                                 />
+                                                <Text style={styles.textX}>x</Text>
+                                                
                                                 <TextInput
-                                                    style={styles.inlineInput}
+                                                    style={styles.inlineInputReps}
                                                     value={inlineReps}
                                                     onChangeText={setInlineReps}
                                                     keyboardType="numeric"
@@ -474,12 +488,15 @@ export default function WorkoutDetailScreen({ route }: any) {
                                                 />
                                             </>
                                         ) : (
+                                            //editar peso y reps de la serie
                                             <TouchableOpacity style={styles.setValues} onPress={() => handleStartInlineEdit(set)}>
-                                                <Text style={styles.setText}>{set.weight}kg</Text>
-                                                <Text style={styles.setText}>{set.reps} reps</Text>
+                                                <Text style={styles.setEditText}>{set.weight}kg</Text>
+                                                <Text style={styles.textX}>x</Text>
+                                                <Text style={styles.setEditText}>{set.reps} reps</Text>
                                             </TouchableOpacity>
                                         )}
 
+                                        {/* marcar serie como completada */}
                                         <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
                                             <Text style={styles.checkbox}>
                                                 {set.completed ? '✓' : '○'}
@@ -514,7 +531,7 @@ export default function WorkoutDetailScreen({ route }: any) {
 
                                 </View>
                             ))}
-                            <TouchableOpacity style={styles.addSetButton} onPress={() => handleAddSet(item)}>
+                            <TouchableOpacity style={styles.addSetButton} onPress={() => handleAddSet(exercise)}>
                                 <Text style={styles.addSetButtonText}>agregar serie</Text>
                             </TouchableOpacity>
                         </View>
@@ -524,26 +541,29 @@ export default function WorkoutDetailScreen({ route }: any) {
             <TouchableOpacity style={styles.deleteWorkoutButton} onPress={() => handleDeleteWorkout(workoutId, workout.name)}>
                 <Text style={styles.buttonText}>Eliminar entrenamiento</Text>
             </TouchableOpacity>
-            
-            <Modal visible={modalVisible} transparent={true} animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Editar Set {selectedSet?.setNumber}</Text>
 
+            {/* modal para editar serie */}
+            <Modal visible={modalVisible} transparent={true} animationType="slide">
+                <View style={styles.modalEditSetContainer}>
+                    <View style={styles.modalContentEditweight}>
+                        {/*<Text style={styles.modalTitle}>Editar Set {selectedSet?.setNumber}</Text>*/}
                         <TextInput
-                            style={styles.modalInput}
+                            style={styles.modalInputWeight}
                             value={editWeight}
                             onChangeText={setEditWeight}
                             placeholder="Peso (kg)"
                             keyboardType="numeric"
                         />
+                    </View>
+                    <View style={styles.modalContentEditReps}>
                         <TextInput
-                            style={styles.modalInput}
+                            style={styles.modalInputReps}
                             value={editReps}
                             onChangeText={setEditReps}
                             placeholder="reps"
                             keyboardType="numeric"
                         />
+                    </View>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
                                 <Text>Cancelar</Text>
@@ -555,10 +575,10 @@ export default function WorkoutDetailScreen({ route }: any) {
                         <TouchableOpacity style={styles.deleteSetButton} onPress={() => handleDeleteSet()}>
                             <Text style={styles.deleteSetText}>Eliminar set</Text>
                         </TouchableOpacity>               
-                    </View>
                 </View>
+                
             </Modal>
-
+            {/* modal para editar entrenamiento */}
             <Modal visible={editWorkoutModalVisible} transparent={true} animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -598,25 +618,26 @@ export default function WorkoutDetailScreen({ route }: any) {
                     </View>
                 </View>
             </Modal>
+     
             <Modal visible={addExerciseModal} transparent={true} animationType="slide">
-                <View style={styles.modalContainer}>
+                <View style={styles.modalAddExerciseCatalog}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>catalogo de ejercicios</Text>
+                        <Text style={styles.modalTitleExerciseCatalog}>catalogo de ejercicios</Text>
                         <FlatList 
                             data={exerciseList} 
                             keyExtractor={(item: any) => item.id}
-                            renderItem={({item}) => (
+                            renderItem={({item: exercise}) => (
                                 <TouchableOpacity
                                     //al tocar selecciona/deselecciona
-                                    onPress={() => toggleSelectedExercises(item)}
+                                    onPress={() => toggleSelectedExercises(exercise)}
                                     style={[
                                         styles.catalogExerciseItem,
                                         //esta seleccionado  ,  si esta seleccionado aplica estilo verde
-                                        selectedExercises.includes(item.id) && styles.catalogExerciseItemSelected
+                                        selectedExercises.includes(exercise.id) && styles.catalogExerciseItemSelected
                                     ]}
                                 >
-                                    <Text style={styles.catalogExerciseName}>{item.name}</Text>
-                                    <Text style={styles.catalogExerciseMuscle}>{item.muscleGroup}</Text>
+                                    <Text style={styles.catalogExerciseName}>{exercise.name}</Text>
+                                    <Text style={styles.catalogExerciseMuscle}>{exercise.muscleGroup}</Text>
 
                                 </TouchableOpacity>
 
@@ -636,23 +657,24 @@ export default function WorkoutDetailScreen({ route }: any) {
 
                 </View>
 
-            </Modal>
+            </Modal>   
         </View>
     );
 
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: theme.background,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 10,
+        backgroundColor: theme.background,
     },
     completeButton: {
         backgroundColor: '#34C759',
@@ -670,10 +692,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         color: '#666',
         marginTop: 5,
+        
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
+        color: theme.textPrimary,
     },
     date: {
         fontSize: 16,
@@ -686,18 +710,32 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontStyle: 'italic',
     },
-    stats: {
+    countExerciseSets: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         padding: 15,
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
+        backgroundColor: theme.cardBackground,
+        borderRadius: 9,
         marginBottom: 20,
+        
+    },
+    totalExercises: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        color: theme.textPrimary,
+    },
+    totalSets: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 9,
+        color: theme.textPrimary,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
+        color: theme.textPrimary,
     },
     empty: {
         color: '#888',
@@ -706,7 +744,7 @@ const styles = StyleSheet.create({
     },
     exerciseCard: {
         padding: 15,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.cardBaground,
         borderRadius: 8,
         marginBottom: 10,
         flexDirection: 'column',
@@ -714,6 +752,7 @@ const styles = StyleSheet.create({
     exerciseName: {
         fontSize: 16,
         fontWeight: '600',
+        color: theme.textPrimary,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -734,10 +773,17 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
-    setText: {
+    setEditText: {
         fontSize: 14,
         color: '#666',
         marginTop: 5,
+        backgroundColor: theme.cardBackground,
+    },
+    textX: {
+        fontSize: 16,
+        color: theme.textPrimary,
+
+
     },
     exerciseHeader: {
         flexDirection: 'row',
@@ -763,23 +809,37 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    modalContainer: {
+    modalAddExerciseCatalog: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: theme.Background,
+        borderRadius: 10,
     },
     modalContent: {
-        backgroundColor: '#fff',
         padding: 20,
         borderRadius: 10,
         width: '80%',
+        backgroundColor: theme.background,
     },
-    modalTitle: {
+    modalContentEditweight: {
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        backgroundColor: theme.cardBackground,
+    },
+    modalContentEditReps: {
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        backgroundColor: theme.cardBackground,
+    },
+    modalTitleExerciseCatalog: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 15,
         textAlign: 'center',
+        color: theme.textPrimary,
     },
     modalInput: {
         borderWidth: 1,
@@ -789,6 +849,24 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         fontSize: 16,
     },
+    modalInputWeight: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+        fontSize: 16,
+        backgroundColor: theme.cardBackground,
+    },
+    modalInputReps: {
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+        fontSize: 16,
+        backgroundColor: theme.cardBackground,
+    },
+
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -883,7 +961,7 @@ const styles = StyleSheet.create({
         width: 25,
         color: '#333',
     },
-    inlineInput: {
+    inlineInputWeight: {
         borderWidth: 1,
         borderColor: '#007AFF',
         borderRadius: 4,
@@ -893,28 +971,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginHorizontal: 5,
+        backgroundColor: theme.cardBackground,
+    },
+    inlineInputReps: {
+        borderWidth: 1,
+        borderColor: '#007AFF',
+        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        width: 60,
+        fontSize: 14,
+        textAlign: 'center',
+        marginHorizontal: 5,
+        backgroundColor: theme.cardBackground,
     },
     setValues: {
         flexDirection: 'row',
         flex: 1,
         justifyContent: 'space-around',
     },
-        catalogExerciseItem: {
+    catalogExerciseItem: {
         padding: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        backgroundColor: '#f5f5f5',
+        borderBottomColor: '#435663',
+        backgroundColor: theme.background,
+        
     },
     catalogExerciseItemSelected: {
-        backgroundColor: '#34C759',
+        backgroundColor: theme.cardBackground,
     },
     catalogExerciseName: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: theme.textPrimary,
     },
     catalogExerciseMuscle: {
         fontSize: 14,
-        color: '#666',
+        color: theme.textSecundary,
     },
     addSetButton: {
         backgroundColor: '#007AFF',
@@ -927,5 +1020,8 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
+    modalEditSetContainer: {
+
+    }
  
 });

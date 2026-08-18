@@ -2,8 +2,11 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "reac
 import { useState } from "react";//guardar datos que cambian
 import { useNavigation } from "@react-navigation/native";//navegar entre pantallas
 import { authService } from "../services/api";//llamar a la api
+import { useTheme } from "../theme/ThemeContext";
 
 export default function RegisterScreen(){
+    const {theme} = useTheme();
+    const styles = createStyles(theme);
     //datos que cambian
     const [ username, setUsername] = useState('');
     const [ email, setEmail ] = useState('');
@@ -44,6 +47,7 @@ export default function RegisterScreen(){
             <TextInput
                 style={styles.input}
                 placeholder="Usuario"
+                placeholderTextColor={theme.textSecundary}
                 value={username}
                 onChangeText={setUsername}
             />
@@ -51,6 +55,7 @@ export default function RegisterScreen(){
             <TextInput
                 style={styles.input}
                 placeholder="Email"
+                placeholderTextColor={theme.textSecundary}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -59,6 +64,7 @@ export default function RegisterScreen(){
             <TextInput
                 style={styles.input}
                 placeholder="Contraseña"
+                placeholderTextColor={theme.textSecundary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -82,18 +88,19 @@ export default function RegisterScreen(){
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: '#fff',   
+        backgroundColor: theme.background,   
     },
     title: {
         fontSize:28,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 40,
+        color: theme.textPrimary,
     },
     input: {
         borderWidth: 1,
@@ -102,6 +109,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 15,
         fontSize: 16,
+        color: theme.textPrimary,
     },
     button: {
         backgroundColor: '#007AFF',

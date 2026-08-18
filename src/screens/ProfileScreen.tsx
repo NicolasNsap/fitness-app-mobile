@@ -1,9 +1,14 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTheme } from "../theme/ThemeContext";
+
+
 
 export default function ProfileScreen() {
+    const { theme, themeType, toggleTheme } = useTheme();
+    const styles = createStyles(theme);
+
     return(
         <View style={styles.container}>
-            <Text style={styles.title}>Perfil</Text>
 
             {/*boton de usuario*/}
             <TouchableOpacity style={styles.userButton}>
@@ -12,29 +17,30 @@ export default function ProfileScreen() {
                 </View>
                 <Text style={styles.userName}>Usuario</Text>
             </TouchableOpacity>
+            {/* boton para cambiar theme */}
+            <TouchableOpacity style={styles.themeButton} onPress={toggleTheme}>
+                <Text style={styles.themeButtonText}>
+                    {themeType === 'dark' ? '☀️ Tema claro' : '🌙 Tema oscuro'}
+                </Text>
+            </TouchableOpacity>
         </View>
     );
 
 }
 
 //estilos para los elementos de la pantalla
-const styles= StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
     //container principal
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
-    },
-    //title
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        backgroundColor: theme.background,
     },
     //boton se usuario
     userButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#007AFF',
+        backgroundColor: theme.cardBackground,
         padding: 15,
         borderRadius: 10,
     },
@@ -43,7 +49,7 @@ const styles= StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#ddd',
+        backgroundColor: theme.inputBackground,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -53,5 +59,18 @@ const styles= StyleSheet.create({
     userName: {
         fontSize: 18,
         marginLeft: 15,
+        color: theme.textPrimary
     },
+    themeButton: {
+        backgroundColor: theme.cardBackground,
+        padding: 15, 
+        borderRadius: 10,
+        marginTop: 20,
+        alignItems: 'center'
+    },
+    themeButtonText: {
+        color: theme.textPrimary,
+        fontSize: 16,
+    }
 });
+

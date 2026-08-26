@@ -14,7 +14,11 @@ export default function ExercisesScreen() {
     const [ selectedMuscleGroup, setSelectedMuscleGroup ] = useState<string>('');
     //estado para mostrar y ocultar el menu
     const [ showMuscleFilter, setShowMuscleFilter ] = useState(false);
-
+    //estados para el modal del detalle del ejercico
+    const [showExerciseModal, setShowExerciseModal] = useState(false);
+    //estado para guardar el id del ejercicio selecionado
+    const [selectedExercise, setSelectedExercise] = useState<any> (null);
+ 
     //funcion para cargar ejercicos
     const loadExercises = async () => {
         try {
@@ -41,6 +45,14 @@ export default function ExercisesScreen() {
         const matchesMuscle = selectedMuscleGroup === '' || exercise.muscleGroup === selectedMuscleGroup;
         return matchesText && matchesMuscle;
     });
+
+    //fucion para controlar la accion del modal de info de ejercicio
+    const handleOpenExerciseModal = (exercise: any) => {
+        //abrir el modal al cliquedar
+        setShowExerciseModal(true);
+        //mostrar info del ejercicio
+        setSelectedExercise(exercise);
+    }
 
     return (
         <View style={styles.container}>
@@ -106,12 +118,44 @@ export default function ExercisesScreen() {
                 data={filteredExercises}
                 keyExtractor={(item: any) => item.id}
                 renderItem={({item: exercise}) => (
-                    <TouchableOpacity style={styles.exerciseCard}>
+                    <TouchableOpacity style={styles.exerciseCard} onPress={() => handleOpenExerciseModal(exercise)}>
                         <Text style={styles.exerciseName}>{exercise.name}</Text>
                         <Text style={styles.exerciseMuscle}>{exercise.muscleGroup}</Text>
                     </TouchableOpacity>
                 )}
             />
+            {/* modal de informacion de un ejercicio */}
+            <Modal
+                visible={showExerciseModal}//varible que controla al visibilidad del modal showExerciseModal
+                transparent={true}
+                animationType="slide"
+            >
+                <View style={styles.modalOverlay}>
+                    {selectedExercise && (
+                        <View style={styles.exerciseModalContent}>
+                            {/* encabezado -> nombre del ejercicio boton salir*/}
+                            <View style={styles.header}>
+                                <View>
+                                    <Text style={styles.title}>{selectedExercise.name}</Text>
+                                </View>
+                                <TouchableOpacity style={styles.closeModalInfoButton} onPress={() => setShowExerciseModal(false)}>
+                                    <Text style={styles.closeModalInfoButtonText}>x</Text>
+                                </TouchableOpacity>
+
+                            </View>
+                            {/* */}
+                            <View>
+                                <Text>{selectedExercise.muscleGroup}</Text>
+                                <Text>{selectedExercise.equipmentNeeded}</Text>
+                            </View>
+                    
+                        </View>
+                    )}
+                </View>
+                
+
+
+            </Modal>
 
         </View>
     
@@ -194,5 +238,33 @@ const createStyles = (theme: any) => StyleSheet.create({
         paddingTop: 200,
         paddingLeft: 20,
     },
+    exerciseModalContent: {
+        backgroundColor: theme.cardBackground,
+        borderRadius: 15,
+        padding: 20,
+        width: '90%',
+        maxHeight: '80%',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    closeModalInfoButton: {
+        backgroundColor: theme.cardBackground,
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignContent: 'center',
+    },
+    closeModalInfoButtonText: {
+        color: theme.textPrimary,
+        fontSize: 16,
+        fontWeight: 'bold',
+        alignItems: 'center',
+    },
+
 });
 

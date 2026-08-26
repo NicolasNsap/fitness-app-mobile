@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../theme/ThemeContext';
+import Button from '../components/Button';
 
 
 export default function LoginScreen(){
@@ -61,15 +62,12 @@ export default function LoginScreen(){
                 secureTextEntry
             />
 
-            <TouchableOpacity 
-                style={styles.button} 
+            <Button
+                text={loading ? 'Cargando...' : 'Iniciar Sesion'}
+                type="primary"
                 onPress={handleLogin}
                 disabled={loading}
-            >
-                <Text style={styles.buttonText}>
-                    {loading ? 'Cargando...' : 'Iniciar Sesión'}
-                </Text>
-            </TouchableOpacity>
+            />
 
             <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
                 <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
@@ -104,17 +102,6 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 16,
         color: theme.textPrimary,
 
-    },
-    button: {
-        backgroundColor: '#007AFF',
-        padding:15,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
     link: {
         color: '#007AFF',

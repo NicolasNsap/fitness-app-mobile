@@ -10,14 +10,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //useNavigation -> poder nevegar a otra pantalla
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeContext';
+import { useWorkout } from '../context/WorkoutContext';
 
 
 
 export default function HomeScreen() {
     //acceso a la navegacion para para poder cambiar de pantalla
     const navigation = useNavigation();
-
+    const { startWorkout } = useWorkout();
     const {theme} = useTheme();
+
     const styles = createStyles(theme);
 
     const [workouts, setWorkouts] = useState([]);
@@ -73,8 +75,8 @@ export default function HomeScreen() {
             const today = new Date().toISOString().split('T')[0];//"2026-08-06"
             const workout = await workoutService.createWorkout('Entrenamiento', today);
 
-            //navega  directo al detalle
-            (navigation as any).navigate('WorkoutDetail', { workoutId: workout.id, isNew: true });
+            //activar le modal flotante
+            startWorkout(workout);
         } catch (error) {
             console.log('Error al crear entrenamiento:', Error);
             

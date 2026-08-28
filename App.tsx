@@ -17,6 +17,10 @@ import ExercisesScreen from "./src/screens/ExercisesScreen";
 import { Ionicons } from "@expo/vector-icons";
 //import ThemeProvider
 import { ThemeProvider, useTheme } from "./src/theme/ThemeContext";
+//import de WorkoutProvider
+import { WorkoutProvider } from "./src/context/WorkoutContext";
+//import componente WorkoutModal
+import WorkoutModal from "./src/components/WorkoutModal";
 
 const Stack = createNativeStackNavigator();
 //Stack.Navigator define un "stack" de pantallas (como una pila de cartas)
@@ -77,45 +81,49 @@ export default function App(){
   return (
     //todas las pantallas estaran  dentro del ThemeProvider pueden usar useTheme() 
     <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false}}
-          />
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ headerShown: false}}
-          />
-          <Stack.Screen
-            name="MainTabs"
-            component={MainTabs}
-            options={{ headerShown: false}}//tabNavigator ya tiene su propio header
-          />
-          <Stack.Screen
-            name="CreateWorkout"
-            component={CreateWorkoutScreen}
-            options={{ title: 'Nuevo Entrenaiento'}}
-          />
-          <Stack.Screen
-            name="WorkoutDetail"
-            component={WorkoutDetailScreen}
-            options={{title: 'Detalle'}}
-          />
-          <Stack.Screen
-            name="AddExercise"
-            component={AddExerciseScreen}
-            options={{ title: 'Agregar Ejercicio'}}
-          />
-          <Stack.Screen
-            name="AddSets"
-            component={AddSetsScreen}
-            options={{title: 'Agregar Sets'}}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <WorkoutProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Login">
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ headerShown: false}}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ headerShown: false}}
+            />
+            <Stack.Screen
+              name="MainTabs"
+              component={MainTabs}
+              options={{ headerShown: false}}//tabNavigator ya tiene su propio header
+            />
+            <Stack.Screen
+              name="CreateWorkout"
+              component={CreateWorkoutScreen}
+              options={{ title: 'Nuevo Entrenaiento'}}
+            />
+            <Stack.Screen
+              name="WorkoutDetail"
+              component={WorkoutDetailScreen}
+              options={{title: 'Detalle'}}
+            />
+            <Stack.Screen
+              name="AddExercise"
+              component={AddExerciseScreen}
+              options={{ title: 'Agregar Ejercicio'}}
+            />
+            <Stack.Screen
+              name="AddSets"
+              component={AddSetsScreen}
+              options={{title: 'Agregar Sets'}}
+            />
+          </Stack.Navigator>
+          <WorkoutModal/>
+        </NavigationContainer>
+        
+      </WorkoutProvider>  
     </ThemeProvider>  
   )
 }

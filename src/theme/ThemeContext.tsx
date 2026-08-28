@@ -17,7 +17,7 @@ type ThemeContextType = {
 //contenedor vacio que despues guardara los datos del tema 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-//funcion que recibe como parametro cualuier pantalla y provee los datos del tema a estas
+//funcion que recibe como parametro cualquier pantalla y provee los datos del tema a estas
 export function ThemeProvider({ children }: { children: ReactNode }) {
     //useState, estado que guarda el tema activo empieza con dark
     const [ themeType, setThemeType ] = useState<ThemeType>('dark');
@@ -33,7 +33,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     return (
         //envuelve a children y le pasa los datos
-        <ThemeContext.Provider value={{ theme, themeType, toggleTheme}}>
+        <ThemeContext.Provider value={{theme, themeType, toggleTheme}}>
             {children}
         </ThemeContext.Provider>
     );

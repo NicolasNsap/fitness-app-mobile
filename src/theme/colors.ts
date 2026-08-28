@@ -5,7 +5,7 @@ export const darkTheme = {
 
     //textos
     textPrimary: '#FFFFFF',
-    textSecundary: '#8B949E',
+    textSecondary: '#8B949E',
 
     //acentos
     primary: '#4A9EFF',

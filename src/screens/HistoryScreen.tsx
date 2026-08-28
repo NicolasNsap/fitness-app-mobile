@@ -162,13 +162,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     workoutDate: {
         fontSize: 14,
-        color: theme.textSecundary,
+        color: theme.textSecondary,
         marginTop: 5,
     },
     timeDuration: {
         fontSize: 13,
         fontWeight: 'bold',
-        color: theme.textSecundary,
+        color: theme.textSecondary,
     },
     workoutInfo: {
         flex: 1,

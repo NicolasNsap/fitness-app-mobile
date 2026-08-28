@@ -1007,7 +1007,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     catalogExerciseMuscle: {
         fontSize: 14,
-        color: theme.textSecundary,
+        color: theme.textSecondary,
     },
     addSetButton: {
         backgroundColor: '#007AFF',

@@ -30,7 +30,7 @@ export default function HomeScreen() {
     useFocusEffect(
         useCallback(() => {
             loadWorkouts();
-        }, [workouts])
+        }, [])
             //cuando la pantalla carga ejecuta loadWorkout() una vez
     );
 
@@ -161,12 +161,12 @@ const createStyles = (theme: any) =>  StyleSheet.create({
     workoutDate: {
         fontSize: 13,
         fontWeight: 'bold',
-        color: theme.textSecundary,
+        color: theme.textSecondary,
     },
     workoutTimeDuration: {
         fontSize: 13,
         fontWeight: 'bold',
-        color: theme.textSecundary,
+        color: theme.textSecondary,
     },
     
 });

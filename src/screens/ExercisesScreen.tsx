@@ -46,7 +46,7 @@ export default function ExercisesScreen() {
         return matchesText && matchesMuscle;
     });
 
-    //fucion para controlar la accion del modal de info de ejercicio
+    //fucion para controlar la accion del modal de info de cada ejercicio
     const handleOpenExerciseModal = (exercise: any) => {
         //abrir el modal al cliquedar
         setShowExerciseModal(true);
@@ -60,10 +60,11 @@ export default function ExercisesScreen() {
             <TextInput 
                 style={styles.searchInput}
                 placeholder="buscar ejercicio..."
-                placeholderTextColor={theme.textSecundary}
+                placeholderTextColor={theme.textSecondary}
                 value={searchText}
                 onChangeText={setSearchText}
             />
+
             {/*boton para filtro por zona muscular*/}
             <View style={styles.filterRow}>
                 <TouchableOpacity
@@ -76,6 +77,7 @@ export default function ExercisesScreen() {
                        { selectedMuscleGroup || 'zona muscular' }
                     </Text>
                 </TouchableOpacity>
+
                 {/*solo muestra quitar filtro si hay filtro activo*/}
                 {selectedMuscleGroup !== '' && (
                     <TouchableOpacity onPress={() => setSelectedMuscleGroup('')}>
@@ -83,7 +85,8 @@ export default function ExercisesScreen() {
                     </TouchableOpacity>
                 )}
             </View>
-            {/*agegar el menu desplegable*/}
+
+            {/*agegar el menu desplegable de zona muscular*/}
             <Modal
                 visible={showMuscleFilter}
                 transparent={true}
@@ -113,14 +116,14 @@ export default function ExercisesScreen() {
                 </TouchableOpacity>
 
             </Modal>
-            {/*flatList para mostrar los ejercicios*/}
+            {/*flatList para mostrar los ejercicios en pantalla*/}
             <FlatList
                 data={filteredExercises}
                 keyExtractor={(item: any) => item.id}
                 renderItem={({item: exercise}) => (
                     <TouchableOpacity style={styles.exerciseCard} onPress={() => handleOpenExerciseModal(exercise)}>
-                        <Text style={styles.exerciseName}>{exercise.name}</Text>
-                        <Text style={styles.exerciseMuscle}>{exercise.muscleGroup}</Text>
+                        <Text style={styles.cardExerciseName}>{exercise.name}</Text>
+                        <Text style={styles.cardExerciseMuscle}>{exercise.muscleGroup}</Text>
                     </TouchableOpacity>
                 )}
             />
@@ -136,17 +139,18 @@ export default function ExercisesScreen() {
                             {/* encabezado -> nombre del ejercicio boton salir*/}
                             <View style={styles.header}>
                                 <View>
-                                    <Text style={styles.title}>{selectedExercise.name}</Text>
+                                    <Text style={styles.modalInfoTitle}>{selectedExercise.name}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.closeModalInfoButton} onPress={() => setShowExerciseModal(false)}>
                                     <Text style={styles.closeModalInfoButtonText}>x</Text>
                                 </TouchableOpacity>
 
                             </View>
-                            {/* */}
+                            {/* informacion del ejercicio para mostrar en el modal de info*/}
                             <View>
-                                <Text>{selectedExercise.muscleGroup}</Text>
-                                <Text>{selectedExercise.equipmentNeeded}</Text>
+                                <Text style={styles.infoExercise}>zona muscular: {selectedExercise.muscleGroup}</Text>
+                                <Text style={styles.infoExercise}>equipamiento: {selectedExercise.equipmentNeeded}</Text>
+                                <Text style={styles.infoExercise}>nivel de dificultad: {selectedExercise.difficultyLevel}</Text>
                             </View>
                     
                         </View>
@@ -168,6 +172,7 @@ const createStyles = (theme: any) => StyleSheet.create({
         padding: 20,
         backgroundColor: theme.background,
     },
+    //cuadro de texto
     searchInput: {
         borderWidth: 1,
         borderColor: theme.border,
@@ -178,20 +183,21 @@ const createStyles = (theme: any) => StyleSheet.create({
         backgroundColor: theme.inputBackground,
         color: theme.textPrimary,
     },
+    //tarjeta de ejercicio
     exerciseCard: {
         backgroundColor: theme.cardBackground,
         padding: 15,
         borderRadius: 10,
         marginBottom: 10,
     },
-    exerciseName: {
+    cardExerciseName: {
         fontSize: 16,
         fontWeight: 'bold',
         color: theme.textPrimary,
     },
-    exerciseMuscle: {
+    cardExerciseMuscle: {
         fontSize: 14,
-        color: theme.textSecundary,
+        color: theme.textSecondary,
         marginTop: 5,
     },
     filterRow: {
@@ -264,6 +270,15 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         alignItems: 'center',
+    },
+    modalInfoTitle: {
+        color: theme.textPrimary,
+
+    },
+    infoExercise: {
+        color: theme.textSecondary,
+        fontSize: 14,
+        marginBottom: 5,
     },
 
 });

@@ -119,14 +119,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     endButton: {
         backgroundColor: theme.success,
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 20,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 8,
     },
     endButtonText: {
         color: '#FFFFFF',
         fontWeight: 'bold',
+        fontSize: 14,
     },
 
 })

@@ -10,41 +10,47 @@ export default function WorkoutDetailScreen({ route }: any) {
     const {theme} = useTheme();
     const styles = createStyles(theme);
     
+    //ESTADOS DEL ENTRENAMIENTO
     //workoutId es el id  del workout que tocamos
     const { workoutId, isNew } = route.params as { workoutId: string, isNew: boolean };//route.params contiene los datos que le  pasamos
+    //guarda el entrenamiento completo que viene del backend
     const [workout, setWorkout] = useState<any>(null);//aun  no tenemos datos
     const [loading, setLoading] = useState(true);//empieza cargando
+
+    //TIMER DEL ENTRENAMIENTO
     //estados para el tiempo de entrenaiento(duracion)
     const [workoutSeconds, setWorkoutSeconds] = useState(0);
+    //esetado del timer, isnew= true entrenamiento nuevo, comienza a contar isnew= false  inactivo entre,pasado, solo vez el tiempo
     const [workoutTimerActive, setWorkoutTimerActive] = useState(isNew);
-    //estados para la ventala modal de editar sets
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedSet, setSelectedSet] = useState<any>(null);
-    const [editWeight, setEditWeight] = useState('');
-    const [editReps, setEditReps] = useState('');
-    //estados para el modal de editar workouts
-    const [editWorkoutModalVisible, setEditWorkoutModalVisible] = useState(false);
-    const [editName, setEditName] = useState('');
-    const [editNotes, setEditNotes] = useState('');
-    const [editDuration, setEditDuration] = useState('');
+    
+
+    //TIMER DE DESCANSO
     //estados de tiempo de descanso
     const [editingRestSetId, setEditingRestSetId] = useState<string | null>(null);
     //valor temporal mientras el usuario escribe
     const [editRestValue, setEditRestValue] = useState('');
     //estados para el timer activo
-    //que set(serie) tiene el timer corriendo
+    //que set(serie) tiene el timer corriendo, si es null no hay timer coorriendo
     const [activeTimerSetId, setActiveTimerSetId] = useState<string | null>(null);
     //segundos restantes del countDown
     const [timerSeconds, setTimerSeconds] = useState(0);
+
+    //EDICION INLINE DE LOS SETS
     //estados para ingresar datos en cada set
     const [editingSetId, setEditingSetId] = useState<string | null>(null);
     const [inlineWeight, setInlineWeight] = useState('');
     const [inlineReps, setInlineReps] = useState('');
-    //modal para agredar ejercicios
+
+    //ESETADOS PARA EDITAR NOMBRE DEL ENTRENAIENTO INLINE
+    const [editingWorkoutName, setEditingWorkoutName] = useState(false);
+    const [inlineWorkoutName, setInlineWorkoutName] = useState('');
+
+    //MODAL EGREGAR EJERCICIOS
+    //modal para agredar ejercicios al tocar "+" el modal de los ejercicio pasa a estado= true 
     const [addExerciseModal, setAddExerciseModal] = useState(false);
-    //estados para el catalogo de ejercicios
+    //estados para el catalogo de ejercicios, todos los ejercicios de la lista
     const [exerciseList, setExerciseList] = useState([]);
-    //estados para selecionar ejercicios del modal de catalogo de ejercicios 
+    //estados para selecionar ejercicios del modal de catalogo de ejercicios, IDs de los ejercicios que el usuario marco
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
 
@@ -58,6 +64,8 @@ export default function WorkoutDetailScreen({ route }: any) {
         }, [workoutId])
         //cuando la pantalla carga ejecuta loadWorkout() una vez
     );
+
+
     //useEffect para el timer del entrenamiento
     useEffect(() => {
         if (workoutTimerActive) {
@@ -68,7 +76,8 @@ export default function WorkoutDetailScreen({ route }: any) {
         }
     }, [workoutTimerActive]);
 
-    //useEffect para activar el modal
+
+    //useEffect para cargar ejercicios cuando abre modal
     useEffect(() => {
         //validar si modal esta en true
         if (addExerciseModal === true){
@@ -77,6 +86,7 @@ export default function WorkoutDetailScreen({ route }: any) {
         }
         //observando comportamiento 
     },[addExerciseModal]);
+
 
     //useEffect para cuenta atras del timer de descando
     //cuando el estado del set cambia se activa el useEffect
@@ -91,7 +101,7 @@ export default function WorkoutDetailScreen({ route }: any) {
             //limpiar el intervalo cuando el efecto se re-ejecuta
             return () => clearInterval(interval);
         }
-        //si hay timer activo y llego a 0
+        //si hay timer activo y llego a 0 descando terminado desactiva el timer
         if (activeTimerSetId && timerSeconds === 0) {
             Alert.alert('¡Descanso terminado!', 'Es hora del siguiente set')
             //desactivar timer
@@ -100,7 +110,10 @@ export default function WorkoutDetailScreen({ route }: any) {
         //observar  estos valores para ejecutar el useEffect
     }, [activeTimerSetId, timerSeconds]);
 
-    //funcion loadWorkout(cargar entrenamiento)
+
+    //OBTNER DEL BACKEND
+
+    //funcion loadWorkout(cargar entrenamiento), obtener desde el backend
     const loadWorkout = async () => {
         try {
             const data = await workoutService.getWorkoutById(workoutId);
@@ -111,6 +124,19 @@ export default function WorkoutDetailScreen({ route }: any) {
             setLoading(false);
         }
     };
+
+     //cargar la lista de ejercicios para el modal
+    const loadExerciseList = async () => {
+        try {
+            const exercises = await exerciseService.getExercises();
+            setExerciseList(exercises);
+        } catch (error) {
+            console.log('Error', error);
+            
+        }
+    };
+
+    //ACCIONES SOBRE LOS EJERCICIOS
 
     //eliminar ejercicio del entrenaiento
     const handleDeleteExercise = (exerciseId: string, exerciseName: string) => {
@@ -139,17 +165,46 @@ export default function WorkoutDetailScreen({ route }: any) {
         )
     };
 
-    //cargar la lista de ejercicios para el modal
-    const loadExerciseList = async () => {
+     //funcion para esetados de seleccion de ejercicios del catalogo
+    const toggleSelectedExercises = (exercise: any) => {
+        //verficar si el id ya esta en la lista
+        if (selectedExercises.includes(exercise.id)) {
+            //ya esta seleccionado, quitalo
+            //crea un nuevo array sin el elemento que queremos quitar
+            setSelectedExercises(selectedExercises.filter(id => id !== exercise.id))
+        }else {
+            //no esta seleccionado, agregalo
+            //...(spread) copia todos los elementos y agrega uno nuevo al final
+            setSelectedExercises([...selectedExercises, exercise.id]);
+        }
+
+    };
+
+    //metodo al momento de cliquear el boton cancelar en el modal
+    const handleCancelExercisesModal = () => {
+        setAddExerciseModal(false);
+        setSelectedExercises([]);
+    };
+
+    //funcion para agregar ejercicios al workour desde el catalogo(modal)
+    const handleAddExercisesModal = async () => {
         try {
-            const exercises = await exerciseService.getExercises();
-            setExerciseList(exercises);
+            for (const exerciseId of selectedExercises) {
+                await workoutService.addExerciseToWorkout(workoutId, exerciseId, [{ setNumber: 1, weight: 0, reps: 0, restSeconds: 120 }]);
+            }
+            setAddExerciseModal(false);
+            setSelectedExercises([]);
+            loadWorkout();
+
         } catch (error) {
             console.log('Error', error);
             
         }
-    }
+    };
 
+   
+
+    //ACCIONES SOBRE EL ENTRENAMIENTO 
     //eliminar un entrenamiento
     const handleDeleteWorkout = (workoutId: string, workoutName: string) => {
         //mensaje de alerta
@@ -174,6 +229,27 @@ export default function WorkoutDetailScreen({ route }: any) {
         )
         
     };
+
+   
+
+
+    //crear funcion para terminar entrenaiento
+    const handleCompleteWorkout = async () => {
+        try {
+            //detener el timer
+            setWorkoutTimerActive(false);
+
+            await workoutService.completeWorkout(workoutId, workoutSeconds);
+            Alert.alert('¡Entrenamiento completado!', 'Buen trabajo 💪');
+            (navigation as any).navigate('MainTabs');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo completar el entrenamiento');
+        }
+    };
+
+
+    //ACCIONES SOBRE  LOS SETS
+
     //metodo para agregar un set(serie)
     const handleAddSet = async (exercise: any) => {
         try {
@@ -192,75 +268,8 @@ export default function WorkoutDetailScreen({ route }: any) {
         } catch (error) {
             Alert.alert('Error', 'No se pudo agregar el set');
         }
-    }
-    //abrir ventana modal de editar sets
-    const handleEditSet = (set: any) => {
-        //guardar el set seleccionado
-        setSelectedSet(set);
-        //llevar el input de peso
-        setEditWeight(set.weight.toString());
-        //llenar el input de reps
-        setEditReps(set.reps.toString());
-        //abrir el modal
-        setModalVisible(true);
     };
-    //guardar set actulizado
-    const handleSaveSet = async () => {
-        try {
-            await setService.updateSet(selectedSet.id, parseFloat(editWeight), parseInt(editReps), selectedSet.completed, selectedSet.restSeconds || 0);
-            loadWorkout();
-            setModalVisible(false);
-        } catch (error) {
-            Alert.alert('No se pudo actulizar el set')
-        }
-    };
-
-    //eliminar un set
-    const handleDeleteSet = async () => {
-        if (!selectedSet) return;
-        //mensaje de alerta
-        Alert.alert(
-            'Eliminar set',
-            `¿Eliminar set ${selectedSet.setNumber}?`,
-            //array de botones
-            [
-                {text: 'Cancelar', style: 'cancel'},
-                {text: 'Eliminar', style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await setService.deleteSet(selectedSet.id);
-                            loadWorkout();
-                            setModalVisible(false);
-                        } catch (error) {
-                            Alert.alert('Error', 'No se puede eliminar el set')
-                            
-                        }
-                    }
-                }
-            ]
-        )
-    };
-
-    //fucion para abrir modal de editar workout
-    const handleOpenEditWorkout = () => {
-        setEditName(workout.name || '');
-        setEditNotes(workout.notes || '');
-        setEditDuration(workout.durationMinutes?.toString() || '');
-        setEditWorkoutModalVisible(true);
-    }
-
-    //funcion para guardar los cambios del workout
-    const handleSaveWorkout = async () => {
-        try {
-            await workoutService.updateWorkout(workoutId, editName, editNotes, parseInt(editDuration));
-            loadWorkout();
-            setEditWorkoutModalVisible(false);
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo actulizar el workout')
-            
-        }
-    };
-
+   
     //funcion para iniciar timer al marcar
     const handleToggleCompleted = async (set: any) => {
         try {
@@ -281,46 +290,7 @@ export default function WorkoutDetailScreen({ route }: any) {
         } 
     };
 
-    //funcione para editar el tiempo de descando
-    const handleEditRest = (set: any) => {
-        //guardar el id del set que vamos a editar
-        setEditingRestSetId(set.id);
-        //llenar le valor con los segundos actuales
-        setEditRestValue(set.restSeconds?.toString() || '0');
-
-    };
-
-    //funcion para guardar el timpo seteado por el uaurio
-    const handleSaveRest = async (set: any) => {
-        try {
-            //llamar a updateSet con el nuevo restSeconds
-            await setService.updateSet(set.id, set.weight, set.reps, set.completed, parseInt(editRestValue));
-            //cerrar el modo ediccion
-            setEditingRestSetId(null);
-            //recargar workout 
-            loadWorkout();
-            
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo actulizar el tiempo de descanso');
-        }
-        
-    }
-
-    //crear funcion para terminar entrenaiento
-    const handleCompleteWorkout = async () => {
-        try {
-            //detener el timer
-            setWorkoutTimerActive(false);
-
-            await workoutService.completeWorkout(workoutId, workoutSeconds);
-            Alert.alert('¡Entrenamiento completado!', 'Buen trabajo 💪');
-            (navigation as any).navigate('MainTabs');
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo completar el entrenamiento');
-        }
-    };
-
-    //funcion para cada edicion de set
+        //funcion para cada edicion de set
     const handleStartInlineEdit = (set: any) => {
         //editar set(serie)
         setEditingSetId(set.id);
@@ -347,64 +317,113 @@ export default function WorkoutDetailScreen({ route }: any) {
         }
     };
 
-    //funcion para esetados de seleccion de ejercicios del catalogo
-    const toggleSelectedExercises = (exercise: any) => {
-        //verficar si el id ya esta en la lista
-        if (selectedExercises.includes(exercise.id)) {
-            //ya esta seleccionado, quitalo
-            //crea un nuevo array sin el elemento que queremos quitar
-            setSelectedExercises(selectedExercises.filter(id => id !== exercise.id))
-        }else {
-            //no esta seleccionado, agregalo
-            //...(spread) copia todos los elementos y agrega uno nuevo al final
-            setSelectedExercises([...selectedExercises, exercise.id]);
-        }
+    //EDITAR TIEMPO DE DESCANDO
+
+    //funcione para editar el tiempo de descando
+    const handleEditRest = (set: any) => {
+        //guardar el id del set que vamos a editar
+        setEditingRestSetId(set.id);
+        //llenar le valor con los segundos actuales
+        setEditRestValue(set.restSeconds?.toString() || '0');
 
     };
 
-    //metodo al momento de cliquear el boton cancelar en el modal
-    const handleCancelExercisesModal = () => {
-        setAddExerciseModal(false);
-        setSelectedExercises([]);
-    }
-    //funcion para agregar ejercicios al workour desde el catalogo(modal)
-    const handleAddExercisesModal = async () => {
+    //funcion para guardar el timpo seteado por el uaurio
+    const handleSaveRest = async (set: any) => {
         try {
-            for (const exerciseId of selectedExercises) {
-                await workoutService.addExerciseToWorkout(workoutId, exerciseId, [{ setNumber: 1, weight: 0, reps: 0, restSeconds: 120 }]);
-            }
-            setAddExerciseModal(false);
-            setSelectedExercises([]);
+            //llamar a updateSet con el nuevo restSeconds
+            await setService.updateSet(set.id, set.weight, set.reps, set.completed, parseInt(editRestValue));
+            //cerrar el modo ediccion
+            setEditingRestSetId(null);
+            //recargar workout 
             loadWorkout();
-
+            
         } catch (error) {
-            console.log('Error', error);
+            Alert.alert('Error', 'No se pudo actulizar el tiempo de descanso');
+        }
+        
+    };
+
+    //EDITAR NOMBRE DEL ENTRENAMIENTO
+
+    //iniciar edicion del nombre
+    const handleStartEditName = () => {
+        setEditingWorkoutName(true);
+        setInlineWorkoutName(workout.name || '');
+    };
+
+    //guardar nombre editado
+    const handleSaveInlineName = async () => {
+        try {
+            await workoutService.updateWorkout(workoutId, inlineWorkoutName, workout.notes, workout.durationMinutes);
+            setEditingWorkoutName(false);
+            loadWorkout();
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo actualizar el nombre');
             
         }
     };
 
+    
 
+
+   
+
+    //mientras espera datos del backend
     if (loading) {
         return (
             <View style={styles.container}>
                 <ActivityIndicator size="large" />
             </View>
         );
-    }
-
+    };
+    //el backend no devolvio datos
     if (!workout) {
         return (
             <View style={styles.container}>
                 <Text>No se encontro el workout</Text>
             </View>
         );
-    }
+    };
+
+    //FUNCION PARA FORMATEAR FECHA
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString + 'T00:00:00');
+        const today = new Date();
+
+        const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+        const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+        const dayName = days[date.getDay()];
+        const dayNumber = date.getDate();
+        const monthName = months[date.getMonth()];
+        const year = date.getFullYear();
+
+        //si es otro anio, mostrar el anio
+        if (year !== today.getFullYear()) {
+            return `${dayName} ${dayNumber} ${monthName} ${year}`;
+        }
+        return `${dayName} ${dayNumber} ${monthName}`;
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View>
-                    <TextInput style={styles.title}>{workout.name}</TextInput>
+                    {/* editar el nombre del entrenamiento*/}
+                    {editingWorkoutName ? (
+                        <TextInput
+                            style={styles.title}
+                            value={inlineWorkoutName}
+                            onChangeText={setInlineWorkoutName}
+                            autoFocus={true}
+                            onBlur={handleSaveInlineName}
+                        />
+                    ) : (
+                        <TouchableOpacity onPress={handleStartEditName}>
+                            <Text style={styles.title}>{workout.name}</Text>
+                        </TouchableOpacity>
+                    )}
                     <Text style={styles.timerText}>
                         ⏱️ {Math.floor(workoutSeconds / 3600)}:{(Math.floor(workoutSeconds / 60) % 60).toString().padStart(2, '0')}:{(workoutSeconds % 60).toString().padStart(2, '0')}
                     </Text>
@@ -416,7 +435,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                 
             </View>
 
-            <Text style={styles.date}>{workout.date}</Text>
+            <Text style={styles.date}>{formatDate(workout.date)}</Text>
             
             {workout.notes && (
                 <Text style={styles.notes}>{workout.notes}</Text>
@@ -542,83 +561,7 @@ export default function WorkoutDetailScreen({ route }: any) {
                 <Text style={styles.buttonText}>Eliminar entrenamiento</Text>
             </TouchableOpacity>
 
-            {/* modal para editar serie */}
-            <Modal visible={modalVisible} transparent={true} animationType="slide">
-                <View style={styles.modalEditSetContainer}>
-                    <View style={styles.modalContentEditweight}>
-                        {/*<Text style={styles.modalTitle}>Editar Set {selectedSet?.setNumber}</Text>*/}
-                        <TextInput
-                            style={styles.modalInputWeight}
-                            value={editWeight}
-                            onChangeText={setEditWeight}
-                            placeholder="Peso (kg)"
-                            keyboardType="numeric"
-                        />
-                    </View>
-                    <View style={styles.modalContentEditReps}>
-                        <TextInput
-                            style={styles.modalInputReps}
-                            value={editReps}
-                            onChangeText={setEditReps}
-                            placeholder="reps"
-                            keyboardType="numeric"
-                        />
-                    </View>
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Text>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleSaveSet()}>
-                                <Text>Guardar</Text>
-                            </TouchableOpacity>                            
-                        </View>
-                        <TouchableOpacity style={styles.deleteSetButton} onPress={() => handleDeleteSet()}>
-                            <Text style={styles.deleteSetText}>Eliminar set</Text>
-                        </TouchableOpacity>               
-                </View>
-                
-            </Modal>
-            {/* modal para editar entrenamiento */}
-            <Modal visible={editWorkoutModalVisible} transparent={true} animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Editar entrenamiento{workout.name}</Text>
-
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editName}
-                            onChangeText={setEditName}
-                            placeholder="Nombre"
-                            keyboardType= "default"
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editNotes}
-                            onChangeText={setEditNotes}
-                            placeholder="notas"
-                            keyboardType="default"
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editDuration}
-                            onChangeText={setEditDuration}
-                            placeholder="minutos"
-                            keyboardType="numeric"
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setEditWorkoutModalVisible(false)}>
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.saveButton} onPress={() => handleSaveWorkout()}>
-                                <Text style={styles.saveButtonText}>Guardar</Text>
-                            </TouchableOpacity>                            
-                        </View>    
-
-                    </View>
-                </View>
-            </Modal>
-     
+            {/* modal que muestra el catalogo de ejercicios para seleccionar*/}
             <Modal visible={addExerciseModal} transparent={true} animationType="slide">
                 <View style={styles.modalAddExerciseCatalog}>
                     <View style={styles.modalContent}>

@@ -36,10 +36,7 @@ export default function WorkoutDetailScreen({ route }: any) {
     const [timerSeconds, setTimerSeconds] = useState(0);
 
     //EDICION INLINE DE LOS SETS
-    //estados para ingresar datos en cada set
-    const [editingSetId, setEditingSetId] = useState<string | null>(null);
-    const [inlineWeight, setInlineWeight] = useState('');
-    const [inlineReps, setInlineReps] = useState('');
+
 
     //ESETADOS PARA EDITAR NOMBRE DEL ENTRENAIENTO INLINE
     const [editingWorkoutName, setEditingWorkoutName] = useState(false);
@@ -290,32 +287,29 @@ export default function WorkoutDetailScreen({ route }: any) {
         } 
     };
 
-        //funcion para cada edicion de set
-    const handleStartInlineEdit = (set: any) => {
-        //editar set(serie)
-        setEditingSetId(set.id);
-        //editar peso
-        setInlineWeight(set.weight?.toString() || '');
-        //editar repeticiones
-        setInlineReps(set.reps?.toString() || '');
-    };
-
-    //funcion para guardar info de los set en linea
-    const handleSaveInlineEdit = async (set: any) => {
+    //funcion para cada edicion de set
+    //guardar peso del set
+    const handleSaveWeight = async (set: any, newWeight: string) => {
         try {
-            await setService.updateSet(
-                set.id, 
-                parseFloat(inlineWeight), 
-                parseInt(inlineReps), 
-                set.completed, 
-                set.restSeconds || 0
-            );
-            setEditingSetId(null);
+            const weight = parseFloat(newWeight) || 0;
+            await setService.updateSet(set.id, weight, set.reps, set.completed, set.restSeconds || 0);
             loadWorkout();
         } catch (error) {
-            Alert.alert('Error', 'No se pudo actualizar el set');
+            Alert.alert('Error', 'no se pudo actualizar el peso');
         }
     };
+
+    //guardar reps del set
+    const handleSaveReps = async (set: any, newReps: string) => {
+        try {
+            const reps = parseFloat(newReps) || 0;
+            await setService.updateSet(set.id, set.weight, reps, set.completed, set.restSeconds || 0);
+            loadWorkout();
+        } catch (error) {
+            Alert.alert('Error', 'no se pudo actualizar las repeticiones');
+        }
+    }
+   
 
     //EDITAR TIEMPO DE DESCANDO
 
@@ -323,16 +317,21 @@ export default function WorkoutDetailScreen({ route }: any) {
     const handleEditRest = (set: any) => {
         //guardar el id del set que vamos a editar
         setEditingRestSetId(set.id);
-        //llenar le valor con los segundos actuales
-        setEditRestValue(set.restSeconds?.toString() || '0');
+        //convertir segundos a formato (ejemplo  120 -> 200)
+        const mins = Math.floor((set.restSeconds || 0) / 60);
+        const secs = (set.restSeconds || 0) % 60;
+        const formatted = mins > 0 ? `${mins}${secs.toString().padStart(2, '0')}` : secs.toString(); 
+
+        setEditRestValue(formatted);
 
     };
 
     //funcion para guardar el timpo seteado por el uaurio
     const handleSaveRest = async (set: any) => {
         try {
+            const restSeconds = restInputToSeconds(editRestValue)
             //llamar a updateSet con el nuevo restSeconds
-            await setService.updateSet(set.id, set.weight, set.reps, set.completed, parseInt(editRestValue));
+            await setService.updateSet(set.id, set.weight, set.reps, set.completed, restSeconds);
             //cerrar el modo ediccion
             setEditingRestSetId(null);
             //recargar workout 
@@ -406,6 +405,31 @@ export default function WorkoutDetailScreen({ route }: any) {
         return `${dayName} ${dayNumber} ${monthName}`;
     };
 
+    //FUNCIONES PARA FORMATO DEL TIEMPO DE DESCANSO
+
+    //formatear mientras escribe
+    const formatRestInput = (value: string) => {
+        const numbers = value.replace(/\D/g,  ''); //solo numeros
+        if (numbers.length === 0) return '0:00';
+        if (numbers.length === 1) return `0:0${numbers}`;
+        if (numbers.length === 2) return `0:${numbers}`;
+
+        const mins = numbers.slice(0, -2);
+        const secs = numbers.slice(-2);
+        return `${mins}:${secs}`;
+    };
+
+    //convertir formato a segundos 
+    const restInputToSeconds = (value: string) => {
+        const numbers = value.replace(/\D/g,  '');
+        if (numbers.length === 0) return 0;
+        if (numbers.length <= 2) return parseInt(numbers);
+
+        const mins = parseInt(numbers.slice(0, -2));
+        const secs = parseInt(numbers.slice(-2));
+        return (mins * 60) + secs;
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -462,13 +486,15 @@ export default function WorkoutDetailScreen({ route }: any) {
                 <Text style={styles.empty}>No hay ejercicios aún</Text>
             ) : (
                 <FlatList
-                    //los datos (array)
+                    //los datos (array de ejercicios)
                     data={workout.exercises}
-                    //ID unico de cada uno de los datos
+                    //ID unico de cada uno de los datos en este caso de los ejercicios
                     keyExtractor={(item: any) => item.id}
                     //renderItem indica como dibujar cada elemento de la lista
                     renderItem={({ item: exercise }) => (
+                        //tarjeta de ejercicio
                         <View style={styles.exerciseCard}>
+                            {/* nombre del ejercicio + boton eliminar ejercicio */}
                             <View style={styles.exerciseHeader}>
                                 <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
 
@@ -480,52 +506,65 @@ export default function WorkoutDetailScreen({ route }: any) {
                                 </TouchableOpacity>
                             </View>
 
+                            {/* encabezado de las columnas */}
+                            <View style={styles.setHeader}>
+                                <Text style={[styles.setHeaderText, styles.setHeaderSerie]}>Serie</Text>
+                                <Text style={[styles.setHeaderText, styles.setHeaderKg]}>Kg</Text>
+                                <Text style={[styles.setHeaderText, styles.setHeaderRep]}>Rep.</Text>
+                                <Text style={[styles.setHeaderText, styles.setHeaderCheck]}>✓</Text>
+                            </View>
+                            {/* se recorre cada uno de los elementos(sets) del array y se retorna en la ui */}
                             {exercise.sets?.map((set: any, index: number) => (
-                                <View key={index} style={styles.setContainer}>
+                                //{/* <View key={index} style={[styles.setContainer, set.completed && styles.setRowCompleted]}> */}
+                                <View key={index} style={[styles.setContainer, set.completed && styles.setRowComleted]}>
+                                    {/* fila del set: numero, peso, resps, checkbox */}
                                     <View key={index} style={styles.setRow}>
-                                        <Text style={styles.setNumber}>{set.setNumber}</Text>
+                                        {/* numero de serie */}
+                                        <Text style={styles.setNumberBox}>{set.setNumber}</Text>
 
-                                        {editingSetId === set.id ? (
-                                            <>
-                                                <TextInput
-                                                    style={styles.inlineInputWeight}
-                                                    value={inlineWeight}
-                                                    onChangeText={setInlineWeight}
-                                                    keyboardType="numeric"
-                                                    placeholder="kg"
-                                                    autoFocus={true}
-                                                />
-                                                <Text style={styles.textX}>x</Text>
-                                                
-                                                <TextInput
-                                                    style={styles.inlineInputReps}
-                                                    value={inlineReps}
-                                                    onChangeText={setInlineReps}
-                                                    keyboardType="numeric"
-                                                    placeholder="reps"
-                                                    onBlur={() => handleSaveInlineEdit(set)}
-                                                />
-                                            </>
+                                        {/*edicion inline peso */}
+                                        {set.completed ? (
+                                            <Text style={styles.setTextCompleted}>{set.weight}</Text>
                                         ) : (
-                                            //editar peso y reps de la serie
-                                            <TouchableOpacity style={styles.setValues} onPress={() => handleStartInlineEdit(set)}>
-                                                <Text style={styles.setEditText}>{set.weight}kg</Text>
-                                                <Text style={styles.textX}>x</Text>
-                                                <Text style={styles.setEditText}>{set.reps} reps</Text>
-                                            </TouchableOpacity>
+                                            <TextInput
+                                                style={styles.setInputInline}
+                                                defaultValue={set.weight.toString()}
+                                                keyboardType="numeric"
+                                                placeholder=""
+                                                onEndEditing={(e) => handleSaveWeight(set, e.nativeEvent.text)}
+                                            />
                                         )}
+                                        
+                                        {/*edicion inline reps */}
+                                        {set.completed ? (
+                                            <Text style={styles.setTextCompleted}>{set.reps}</Text>
+                                        ) : (
+                                            <TextInput
+                                                style={styles.setInputInline}
+                                                defaultValue={set.reps.toString()}
+                                                keyboardType="numeric"
+                                                placeholder=""
+                                                onEndEditing={(e) => handleSaveReps(set, e.nativeEvent.text)}
+                                            />
+                                        )}
+                                        
 
-                                        {/* marcar serie como completada */}
-                                        <TouchableOpacity onPress={() => handleToggleCompleted(set)}>
-                                            <Text style={styles.checkbox}>
-                                                {set.completed ? '✓' : '○'}
-                                            </Text>
+                                        {/* checkbox para marcar serie como completada */}
+                                        <TouchableOpacity
+                                            style={[styles.checkboxSet, set.completed && styles.checkboxSetCompleted]} 
+                                            onPress={() => handleToggleCompleted(set)}
+                                        >
+                                            <Text style={[styles.checkboxSetText, !set.completed && styles.checkboxSetTextIncomplete]}>✓</Text>
+
                                         </TouchableOpacity>
                                     </View>
-                                    {/*editando este set*/}
+
+                                    {/*editando tiempo de descanso */}
                                     {editingRestSetId === set.id ? (
+
                                         <View style={styles.restEditRow}>
-                                            <Text style={styles.restText}>Descando (seg): </Text>
+                                            <View style={styles.restLine}/>
+                                            {/* input editable */}
                                             <TextInput
                                                 style={styles.restInput}
                                                 value={editRestValue}
@@ -536,15 +575,19 @@ export default function WorkoutDetailScreen({ route }: any) {
                                                 //guardar cuando el usuario sale del input
                                                 onBlur={() => handleSaveRest(set)}
                                             />
+                                            <View style={styles.restLine}/>
                                         </View>
                                     ) : (
-                                        <TouchableOpacity onPress={() => handleEditRest(set)}>
+                                        //texto con el timer
+                                        <TouchableOpacity onPress={() => handleEditRest(set)} style={styles.restRow}>
+                                            <View style={styles.restLine}/>
                                             <Text style={[styles.restText, activeTimerSetId === set.id && styles.activeTimer]}>
                                                 {activeTimerSetId === set.id 
                                                     ? `⏱️ ${Math.floor(timerSeconds / 60)}:${(timerSeconds % 60).toString().padStart(2, '0')}`
                                                     : `${set.restSeconds ? `${Math.floor(set.restSeconds / 60)}:${(set.restSeconds % 60).toString().padStart(2, '0')}` : '0:00'}`
                                                 }
                                             </Text>
+                                            <View style={styles.restLine}/>
                                         </TouchableOpacity>
                                     )}
 
@@ -686,16 +729,15 @@ const createStyles = (theme: any) => StyleSheet.create({
         marginTop: 20,
     },
     exerciseCard: {
-        padding: 15,
-        backgroundColor: theme.cardBaground,
-        borderRadius: 8,
-        marginBottom: 10,
+        marginBottom: 20,
         flexDirection: 'column',
+        marginHorizontal: -21,
+        paddingHorizontal: 20,
     },
     exerciseName: {
         fontSize: 16,
-        fontWeight: '600',
-        color: theme.textPrimary,
+        fontWeight: 'bold',
+        color: theme.primary,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -721,6 +763,19 @@ const createStyles = (theme: any) => StyleSheet.create({
         color: '#666',
         marginTop: 5,
         backgroundColor: theme.cardBackground,
+    },
+    setRowComleted: {
+        backgroundColor: 'rgba(52, 199, 89, 0.15)',
+        marginHorizontal: -20,
+        paddingHorizontal: 20,
+    },
+    setTextCompleted: {
+        flex: 2,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: theme.textPrimary,
+        textAlign: 'center',
+        marginHorizontal: 5,
     },
     textX: {
         fontSize: 16,
@@ -858,26 +913,85 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontSize: 20,
         padding: 5,
     },
+    setHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 1,
+        marginBottom: 10,
+    },
+    setHeaderText: {
+        color: theme.textSecondary,
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    setHeaderSerie: {
+        flex: 1,
+        textAlign: 'center',
+    },
+    setHeaderKg: {
+        flex: 2,
+        textAlign: 'center',
+    },
+    setHeaderRep: {
+        flex: 2,
+        textAlign: 'center',
+    },
+    setHeaderCheck: {
+        flex: 1,
+        textAlign: 'center',
+    },
     setRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 5,
-    },
-    checkbox: {
-        fontSize: 20,
-        padding: 10,
-        color: '#007AFF',
-    },
-    setContainer: {
-      marginBottom: 10,
-    },
-    restText: {
-        fontSize: 15,
-        color: '#888',
-        marginLeft: 5,
-        marginTop: 2,
+        alignItems: 'baseline',
         
+    },
+    setRowCompleted: {
+        backgroundColor: 'rgba(52, 199, 89, 0.15)',
+        alignItems: 'baseline',
+
+
+    },
+    setNUmber: {
+        width: 40,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: theme.textPrimary,
+        textAlign: 'center',
+    },
+    setInput: {
+        width: 70,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        fontSize: 16,
+        textAlign: 'center',
+        backgroundColor: theme.inputBackground,
+        color: theme.textPrimary,
+    },
+    checkBoxCOntainer: {
+        width: 40,
+        alignItems: 'center',
+    },
+    
+    setContainer: {
+        marginHorizontal: 0,
+        paddingVertical: 5,
+        borderRadius: 0,
+        
+    },
+    restRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 5,
+    },
+    restLine: {
+        flex: 1,
+        maxWidth: 150,
+        marginHorizontal: 8,
+        height: 2,
+        backgroundColor: theme.success,
+
     },
     restEditRow: {
         flexDirection: 'row',
@@ -898,35 +1012,40 @@ const createStyles = (theme: any) => StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
     },
-    setNumber: {
-        fontSize: 14,
+    setNumberBox: {
+        flex: 1,
+        fontSize: 16,
         fontWeight: 'bold',
-        width: 25,
-        color: '#333',
-    },
-    inlineInputWeight: {
-        borderWidth: 1,
-        borderColor: '#007AFF',
-        borderRadius: 4,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        width: 60,
-        fontSize: 14,
+        color: theme.textPrimary,
         textAlign: 'center',
-        marginHorizontal: 5,
-        backgroundColor: theme.cardBackground,
     },
-    inlineInputReps: {
-        borderWidth: 1,
-        borderColor: '#007AFF',
-        borderRadius: 4,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        width: 60,
-        fontSize: 14,
+    setInputInline: {
+        flex: 2,
+        borderRadius: 5,
+        paddingVertical: 5,
         textAlign: 'center',
-        marginHorizontal: 5,
-        backgroundColor: theme.cardBackground,
+        marginHorizontal: 30,
+        backgroundColor: theme.inputBackground,
+        color: theme.textPrimary,
+    },
+    checkboxSet: {
+        width: 27,
+        height: 27,
+        borderRadius: 7,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxSetCompleted: {
+        backgroundColor: theme.success,
+        borderBlockColor: theme.success,
+    },
+    checkboxSetText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    checkboxSetTextIncomplete: {
+        color: theme.textSecondary,
     },
     setValues: {
         flexDirection: 'row',
@@ -965,6 +1084,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     },
     modalEditSetContainer: {
 
-    }
+    },
+    restText: {
+        color: theme.textPrimary,
+    },
  
 });
